@@ -24,8 +24,13 @@ class DeployWebhookController extends Controller
             return response('Ignored: not a push event.', 200);
         }
 
-        if ($request->input('ref') !== 'refs/heads/main') {
-            return response('Ignored: not a push to main.', 200);
+        $deployBranch = config('services.deploy_webhook.branch');
+
+        if ($request->input('ref') !== "refs/heads/{$deployBranch}") {
+            // Pushes to main are expected and ignored here - that's raw
+            // source, not the CI-built artifact this receiver deploys.
+            // GitHub Actions reacts to those instead (.github/workflows/deploy.yml).
+            return response("Ignored: not a push to {$deployBranch}.", 200);
         }
 
         DeployApplication::dispatch();

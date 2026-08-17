@@ -23,17 +23,30 @@ class DeployWebhookTest extends TestCase
         ]);
     }
 
-    public function test_a_valid_push_to_main_dispatches_the_deploy_job(): void
+    public function test_a_valid_push_to_the_production_branch_dispatches_the_deploy_job(): void
     {
         Bus::fake();
-        config(['services.deploy_webhook.secret' => 'test-secret']);
+        config(['services.deploy_webhook.secret' => 'test-secret', 'services.deploy_webhook.branch' => 'production']);
 
-        $payload = ['ref' => 'refs/heads/main'];
+        $payload = ['ref' => 'refs/heads/production'];
 
         $response = $this->postJson(route('deploy.webhook'), $payload, $this->signedHeaders($payload));
 
         $response->assertStatus(202);
         Bus::assertDispatched(DeployApplication::class);
+    }
+
+    public function test_a_push_to_main_is_ignored_since_thats_unbuilt_source(): void
+    {
+        Bus::fake();
+        config(['services.deploy_webhook.secret' => 'test-secret', 'services.deploy_webhook.branch' => 'production']);
+
+        $payload = ['ref' => 'refs/heads/main'];
+
+        $response = $this->postJson(route('deploy.webhook'), $payload, $this->signedHeaders($payload));
+
+        $response->assertStatus(200);
+        Bus::assertNotDispatched(DeployApplication::class);
     }
 
     public function test_an_invalid_signature_is_rejected_and_nothing_is_dispatched(): void
@@ -93,10 +106,10 @@ class DeployWebhookTest extends TestCase
         Bus::assertNotDispatched(DeployApplication::class);
     }
 
-    public function test_pushes_to_branches_other_than_main_are_ignored(): void
+    public function test_pushes_to_branches_other_than_the_deploy_branch_are_ignored(): void
     {
         Bus::fake();
-        config(['services.deploy_webhook.secret' => 'test-secret']);
+        config(['services.deploy_webhook.secret' => 'test-secret', 'services.deploy_webhook.branch' => 'production']);
 
         $payload = ['ref' => 'refs/heads/feature/something'];
 

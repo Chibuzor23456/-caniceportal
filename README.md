@@ -131,33 +131,56 @@ shouldn't be "fixed" without re-reading that section first:
 
 ## Auto-Deploy
 
-Pushing to `main` on GitHub redeploys the site on its own - no more manual re-upload.
-`POST /deploy/webhook` (`app/Http/Controllers/DeployWebhookController.php`) verifies
-GitHub's HMAC signature, then queues `app/Jobs/DeployApplication.php`, which runs on
-the same cron-driven queue drain already described above (so it can take a minute to
-actually start, that's expected). The job does, in order: `git pull origin main` ->
-`composer install --no-dev` -> `npm ci && npm run build` -> `php artisan migrate
---force` -> clears the view/route/config caches (never `:cache` - that would freeze
-`env()` reads and break the install wizard's live `.env` writes). Every step's output
-lands in `storage/logs/deploy.log`; admins also get an email + in-app notification on
-success or failure either way.
+Push to `main` on GitHub and it goes live on its own - no manual re-upload, and no
+`git`/`composer`/`npm` needs to exist or work on Hostinger's PHP process at all.
+Everything builds in CI; the server only ever downloads and syncs a finished,
+ready-to-run artifact.
+
+**Pipeline:** push to `main` -> `.github/workflows/deploy.yml` runs `composer install
+--no-dev` and `npm run build`, then force-pushes the complete result (including the
+normally-gitignored `vendor/` and `public/build/`) as a single commit to a
+`production` branch -> GitHub fires the webhook again for that push -> `POST
+/deploy/webhook` (`app/Http/Controllers/DeployWebhookController.php`) verifies
+GitHub's HMAC-SHA256 signature and that the push is to `production` specifically
+(pushes to `main` are correctly ignored here - that's unbuilt source, CI hasn't run
+yet), then queues `app/Jobs/DeployApplication.php`. That job runs on the same
+cron-driven queue drain described above (so it can take a minute to actually start),
+downloads the `production` branch as a zip via GitHub's REST API, and syncs it onto
+the live directory (`app/Support/DirectorySync.php` - a real sync: added, changed,
+*and removed* files, never a one-way copy, so deleting a file from git actually
+removes it from the server too), then runs `php artisan migrate --force` and clears
+(never `:cache`, which would freeze `env()` reads and break the install wizard's live
+`.env` writes) the view/route/config caches. `.env` and everything under `storage/`
+are never touched by the sync in either direction, no matter what the build artifact
+contains. Every step's output lands in `storage/logs/deploy.log`; admins get an
+email + in-app notification on success or failure either way.
 
 **One-time setup, after `/install` has already been completed:**
 
-1. Generate a secret: `php artisan tinker --execute="echo Str::random(40);"`
-2. Add it to the server's `.env` as `DEPLOY_WEBHOOK_SECRET=...`
+1. Generate a webhook secret yourself - **don't reuse one from anywhere else**:
+   `openssl rand -hex 32` (any terminal, or Hostinger SSH). Add it to the server's
+   `.env` as `DEPLOY_WEBHOOK_SECRET=...`.
+2. Generate a fine-grained GitHub PAT for the server to download the private repo
+   with: GitHub -> Settings -> Developer settings -> **Personal access tokens** ->
+   **Fine-grained tokens** -> Generate new -> Repository access: only
+   `-caniceportal` -> Permissions: **Contents: Read-only**, nothing else. Add it to
+   the server's `.env` as `DEPLOY_GITHUB_TOKEN=...`. This is a separate credential
+   from whatever GitHub Actions uses to push to `production` (its own auto-issued
+   token, no setup needed for that side).
 3. On GitHub: repo -> Settings -> Webhooks -> Add webhook
    - Payload URL: `https://portal.okwudilicanice.com/deploy/webhook`
    - Content type: `application/json`
    - Secret: the exact same value from step 1
-   - Which events: "Just the push event"
+   - Which events: "Just the push event" (branch filtering happens in the
+     receiver's code, not here - this one webhook covers both the `main` push,
+     which gets ignored, and the `production` push, which triggers the deploy)
 
-**Known risk, not a bug if it happens:** on some hosts the SSH user and the web
-server's PHP process run as different users, which can mean this webhook (running as
-the web server) can't write to `.git`/`vendor` even though a manual `git pull` over
-SSH works fine. `storage/logs/deploy.log` will show a permission error immediately if
-so - the fix is aligning file ownership in Hostinger's file manager (or a support
-ticket), not a code change.
+**First deploy is still one manual step.** The sync above needs an existing server
+directory to sync *onto* - there's nothing to diff against on a server that doesn't
+have the app yet. Do the very first deploy as a manual `git clone` of the
+`production` branch (once it exists - push a commit to `main` first so CI creates
+it) instead of a zip upload, so `.env`/`storage/` are already in place; every push
+after that is zero-click.
 
 ## Tests
 
