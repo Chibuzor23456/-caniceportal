@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CanonicalQuotationController;
+use App\Http\Controllers\DeployWebhookController;
 use App\Http\Controllers\Public\SecureQuotationController;
 use App\Http\Controllers\Public\VerificationController;
 use Illuminate\Support\Facades\Route;
@@ -8,6 +9,13 @@ use Illuminate\Support\Facades\Route;
 require __DIR__.'/install.php';
 
 Route::get('/', fn () => redirect()->route('login'));
+
+// GitHub push webhook (see README "Auto-Deploy"). Public by necessity -
+// signature verification inside the controller is the real gate, not
+// anything at the route layer. Throttled as defense in depth.
+Route::post('/deploy/webhook', DeployWebhookController::class)
+    ->middleware('throttle:20,1')
+    ->name('deploy.webhook');
 
 // Public, token-based, no login (Section 11).
 Route::get('/q/{token}', [SecureQuotationController::class, 'show'])->name('quotation.secure');

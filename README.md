@@ -82,13 +82,14 @@ and logs the event automatically.
 
 ## Deployment (Hostinger)
 
-This app is designed to deploy on Hostinger shared hosting, per Section 3 of the PRD.
-A few things are load-bearing there and shouldn't be "fixed" without re-reading that
-section first:
+This app is designed to deploy on Hostinger shared hosting, per Section 3 of the PRD,
+at **`https://portal.okwudilicanice.com`**. A few things are load-bearing there and
+shouldn't be "fixed" without re-reading that section first:
 
 - **First-run setup is a web wizard, not SSH commands.** After uploading the code,
-  copy `.env.example` to `.env` (leave `DB_*`/`MAIL_*` blank - the wizard fills those
-  in), then visit `/install`. It walks through Database -> Email (SMTP, with a Test
+  copy `.env.example` to `.env` and set `APP_URL=https://portal.okwudilicanice.com`
+  and `APP_ENV=production` (leave `DB_*`/`MAIL_*` blank - the wizard fills those in),
+  then visit `/install`. It walks through Database -> Email (SMTP, with a Test
   Connection button) -> Admin Account, writing straight to `.env` and running
   migrations for you. It generates `APP_KEY` itself if `.env` doesn't have one yet, so
   no `php artisan key:generate` step is required either. **Complete it immediately
@@ -127,6 +128,36 @@ section first:
   scheduled every 5 minutes in `routes/console.php`). It no-ops until `IMAP_HOST` (and
   `IMAP_PORT`/`IMAP_USERNAME`/`IMAP_PASSWORD`) are set - create the mailbox on Hostinger
   first, then fill those in.
+
+## Auto-Deploy
+
+Pushing to `main` on GitHub redeploys the site on its own - no more manual re-upload.
+`POST /deploy/webhook` (`app/Http/Controllers/DeployWebhookController.php`) verifies
+GitHub's HMAC signature, then queues `app/Jobs/DeployApplication.php`, which runs on
+the same cron-driven queue drain already described above (so it can take a minute to
+actually start, that's expected). The job does, in order: `git pull origin main` ->
+`composer install --no-dev` -> `npm ci && npm run build` -> `php artisan migrate
+--force` -> clears the view/route/config caches (never `:cache` - that would freeze
+`env()` reads and break the install wizard's live `.env` writes). Every step's output
+lands in `storage/logs/deploy.log`; admins also get an email + in-app notification on
+success or failure either way.
+
+**One-time setup, after `/install` has already been completed:**
+
+1. Generate a secret: `php artisan tinker --execute="echo Str::random(40);"`
+2. Add it to the server's `.env` as `DEPLOY_WEBHOOK_SECRET=...`
+3. On GitHub: repo -> Settings -> Webhooks -> Add webhook
+   - Payload URL: `https://portal.okwudilicanice.com/deploy/webhook`
+   - Content type: `application/json`
+   - Secret: the exact same value from step 1
+   - Which events: "Just the push event"
+
+**Known risk, not a bug if it happens:** on some hosts the SSH user and the web
+server's PHP process run as different users, which can mean this webhook (running as
+the web server) can't write to `.git`/`vendor` even though a manual `git pull` over
+SSH works fine. `storage/logs/deploy.log` will show a permission error immediately if
+so - the fix is aligning file ownership in Hostinger's file manager (or a support
+ticket), not a code change.
 
 ## Tests
 

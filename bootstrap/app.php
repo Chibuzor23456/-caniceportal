@@ -20,6 +20,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.2fa' => EnsureAdminTwoFactorIsSetUp::class,
             'client.password' => EnsureClientPasswordIsCurrent::class,
         ]);
+
+        // GitHub can't supply a Laravel CSRF token; the deploy webhook is
+        // protected by HMAC signature verification instead (see
+        // DeployWebhookController).
+        $middleware->validateCsrfTokens(except: [
+            'deploy/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

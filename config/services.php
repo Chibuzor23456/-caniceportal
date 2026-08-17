@@ -45,4 +45,11 @@ return [
         'password' => env('IMAP_PASSWORD'),
     ],
 
+    // GitHub deploy webhook (see README "Auto-Deploy"). Empty in dev, which
+    // DeployWebhookController treats as "reject every request" rather than
+    // silently trusting an unconfigured secret.
+    'deploy_webhook' => [
+        'secret' => env('DEPLOY_WEBHOOK_SECRET'),
+    ],
+
 ];
