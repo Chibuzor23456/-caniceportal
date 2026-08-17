@@ -49,3 +49,6 @@ Thumbs.db
 
 # Claude Code local session state.
 /.claude
+
+# Install wizard lock - a fresh clone must always start uninstalled.
+/storage/app/installed.lock

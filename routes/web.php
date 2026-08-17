@@ -5,6 +5,8 @@ use App\Http\Controllers\Public\SecureQuotationController;
 use App\Http\Controllers\Public\VerificationController;
 use Illuminate\Support\Facades\Route;
 
+require __DIR__.'/install.php';
+
 Route::get('/', fn () => redirect()->route('login'));
 
 // Public, token-based, no login (Section 11).

@@ -86,6 +86,18 @@ This app is designed to deploy on Hostinger shared hosting, per Section 3 of the
 A few things are load-bearing there and shouldn't be "fixed" without re-reading that
 section first:
 
+- **First-run setup is a web wizard, not SSH commands.** After uploading the code,
+  copy `.env.example` to `.env` (leave `DB_*`/`MAIL_*` blank - the wizard fills those
+  in), then visit `/install`. It walks through Database -> Email (SMTP, with a Test
+  Connection button) -> Admin Account, writing straight to `.env` and running
+  migrations for you. It generates `APP_KEY` itself if `.env` doesn't have one yet, so
+  no `php artisan key:generate` step is required either. **Complete it immediately
+  after upload, before sharing the URL with anyone** - it locks itself permanently
+  (`storage/app/installed.lock`, plus a check for an existing admin account either
+  way) the moment the admin account is created, but until then it's reachable by
+  anyone who finds it. See `app/Http/Middleware/EnsureNotInstalled.php` for exactly
+  what "installed" means before touching this.
+
 - **Queue processing is cron-simulated, not a persistent worker.** Shared hosting kills
   long-running processes, so don't run `php artisan queue:work` as a daemon. Instead,
   add a single cron entry that fires every minute:
