@@ -1,0 +1,31 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Canice Technologies brand palette (Brand Guidelines v1.0). Every
+       primary action / active nav state in the design system reads from
+       --color-brand and --color-brand-emphasis only. */
+    --color-brand: #1061f5;
+    --color-brand-emphasis: #0b2dd1;
+    --color-brand-accent: #00c2ff;
+    --color-navy: #0a0f1c;
+    --color-canvas: #f3f4f6;
+}
+
+/* Global overflow safety: nothing should ever be able to push the page wider
+   than the viewport and leave a horizontal-scroll gutter of blank canvas. */
+html,
+body {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+img,
+svg {
+    max-width: 100%;
+}

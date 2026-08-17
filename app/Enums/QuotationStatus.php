@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Enums;
+
+enum QuotationStatus: string
+{
+    case Draft = 'draft';
+    case Sent = 'sent';
+    case Viewed = 'viewed';
+    case Accepted = 'accepted';
+    case Rejected = 'rejected';
+    case Expired = 'expired';
+    case Archived = 'archived';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Draft => 'Draft',
+            self::Sent => 'Sent',
+            self::Viewed => 'Viewed',
+            self::Accepted => 'Accepted',
+            self::Rejected => 'Rejected',
+            self::Expired => 'Expired',
+            self::Archived => 'Archived',
+        };
+    }
+
+    public function pillColor(): string
+    {
+        return match ($this) {
+            self::Draft => 'gray',
+            self::Sent, self::Viewed => 'blue',
+            self::Accepted => 'green',
+            self::Rejected, self::Expired => 'red',
+            self::Archived => 'gray',
+        };
+    }
+
+    /**
+     * Whether the client-facing acceptance form/signature pad may still be shown.
+     */
+    public function acceptsSignature(): bool
+    {
+        return in_array($this, [self::Draft, self::Sent, self::Viewed], true);
+    }
+}

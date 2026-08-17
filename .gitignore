@@ -1,0 +1,51 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+_ide_helper.php
+Homestead.json
+Homestead.yaml
+Thumbs.db
+/database/database.sqlite
+
+# Pre-Laravel prototype, superseded by this app - kept on disk for
+# reference, not part of the tracked codebase.
+/quotation.html
+/send.php
+/success.html
+/test_mail.php
+/upload_proof.php
+
+# Raw brand asset originals - already processed into /public/images/brand.
+/assets
+/Brand Guiidelines.jpg
+/Dark Logo.png
+/Logo Icon.png
+/Main Logo.png
+/Monochrome Logo.png
+
+# Reference documents with real client business content, not app code.
+/Modern Professional Business invoice Template.pdf
+/SHOPwTEE QUOTATION AND CONTRACT AGREEMENT (2).pdf
+
+# Claude Code local session state.
+/.claude
