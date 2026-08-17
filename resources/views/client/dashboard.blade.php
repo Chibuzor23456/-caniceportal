@@ -4,6 +4,31 @@
         <p class="mt-1 text-sm text-slate-500">Here's where things stand on your account.</p>
     </div>
 
+    @if ($pendingTestimonial)
+        <div x-data="{ open: true }" class="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-900">How did we do on &ldquo;{{ $pendingTestimonial->project->title }}&rdquo;?</h2>
+                    <p class="mt-1 text-sm text-slate-500">Your project is complete. We'd love to hear your feedback.</p>
+                </div>
+                <button type="button" @click="open = false" x-show="open" class="text-slate-400 hover:text-slate-600">&times;</button>
+            </div>
+
+            <form x-show="open" method="POST" action="{{ route('client.testimonials.store', $pendingTestimonial) }}" class="mt-4">
+                @csrf
+                <div class="flex items-center gap-2">
+                    @for ($i = 1; $i <= 5; $i++)
+                        <label class="cursor-pointer text-2xl text-slate-300 has-[:checked]:text-amber-400">
+                            <input type="radio" name="rating" value="{{ $i }}" class="sr-only" required>&#9733;
+                        </label>
+                    @endfor
+                </div>
+                <textarea name="comment" rows="2" placeholder="Anything you'd like to add? (optional)" class="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"></textarea>
+                <button type="submit" class="mt-3 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-emphasis">Submit Feedback</button>
+            </form>
+        </div>
+    @endif
+
     <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <x-ui.stat-card label="Active Projects" :value="$activeProjects" color="blue">
             <x-slot:icon>

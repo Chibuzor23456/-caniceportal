@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\QuotationController;
 use App\Http\Controllers\Admin\QuotationTemplateController;
+use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\TwoFactorSetupController;
 use App\Http\Controllers\ComingSoonController;
 use Illuminate\Support\Facades\Route;
@@ -75,6 +76,8 @@ Route::prefix('admin')
 
         Route::get('/files', [FileController::class, 'index'])->name('files.index');
         Route::get('/files/{file}/download', [FileController::class, 'download'])->name('files.download');
+
+        Route::get('/testimonials', [TestimonialController::class, 'index'])->name('testimonials.index');
 
         Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
         Route::get('/messages/{client}', [MessageController::class, 'show'])->name('messages.show');

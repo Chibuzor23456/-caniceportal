@@ -8,6 +8,7 @@ use App\Mail\PhaseApprovedMail;
 use App\Mail\ProjectCompletedMail;
 use App\Models\ActivityLog;
 use App\Models\ProjectPhase;
+use App\Models\Testimonial;
 use App\Models\User;
 use App\Notifications\GenericNotification;
 use Illuminate\Support\Facades\DB;
@@ -91,6 +92,11 @@ class ApprovePhaseAction
                     url: route('admin.projects.show', $project),
                 ));
             });
+
+            Testimonial::create([
+                'client_id' => $project->client_id,
+                'project_id' => $project->id,
+            ]);
         }
 
         return true;

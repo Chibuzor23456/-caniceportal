@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Project;
 use App\Models\Quotation;
+use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -44,6 +45,10 @@ class DashboardController extends Controller
             ? Invoice::where('client_id', $client->id)->whereIn('status', [InvoiceStatus::Sent, InvoiceStatus::Overdue])->count()
             : 0;
 
+        $pendingTestimonial = $client
+            ? Testimonial::where('client_id', $client->id)->whereNull('submitted_at')->with('project')->latest('created_at')->first()
+            : null;
+
         return view('client.dashboard', [
             'client' => $client,
             'pendingQuotations' => $pendingQuotations,
@@ -53,6 +58,7 @@ class DashboardController extends Controller
             'currentPhaseStatus' => $currentPhase?->status->label(),
             'progressTrend' => $this->progressTrend($currentProject),
             'outstandingInvoices' => $outstandingInvoices,
+            'pendingTestimonial' => $pendingTestimonial,
         ]);
     }
 

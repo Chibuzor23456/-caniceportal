@@ -10,6 +10,7 @@
     use App\Models\Message;
     use App\Models\ProjectPhase;
     use App\Models\Quotation;
+    use App\Models\Testimonial;
 
     $activeClients = Client::where('status', \App\Enums\ClientStatus::Active)->count();
     $pendingQuotations = Quotation::whereIn('status', [QuotationStatus::Sent, QuotationStatus::Viewed])->count();
@@ -17,6 +18,7 @@
     $pendingInvoices = Invoice::whereIn('status', [InvoiceStatus::Sent, InvoiceStatus::Overdue])->count();
     $unreadMessages = Message::whereNull('read_at')->whereHas('sender', fn ($q) => $q->where('role', 'client'))->count();
     $pendingContracts = Contract::whereIn('status', [ContractStatus::Sent, ContractStatus::Viewed])->count();
+    $newTestimonials = Testimonial::where('submitted_at', '>=', now()->subDays(7))->count();
 
     $navGroups = [
         [
@@ -34,6 +36,7 @@
             'items' => [
                 ['label' => 'Contracts', 'icon' => 'contracts', 'url' => route('admin.contracts.index'), 'active' => request()->routeIs('admin.contracts.*'), 'badge' => $pendingContracts ?: null],
                 ['label' => 'Files', 'icon' => 'files', 'url' => route('admin.files.index'), 'active' => request()->routeIs('admin.files.*'), 'badge' => null],
+                ['label' => 'Testimonials', 'icon' => 'testimonials', 'url' => route('admin.testimonials.index'), 'active' => request()->routeIs('admin.testimonials.*'), 'badge' => $newTestimonials ?: null],
                 ['label' => 'Messages', 'icon' => 'messages', 'url' => route('admin.messages.index'), 'active' => request()->routeIs('admin.messages.*'), 'badge' => $unreadMessages ?: null],
                 ['label' => 'Activity Log', 'icon' => 'activity', 'url' => route('admin.activity.index'), 'active' => request()->routeIs('admin.activity.*'), 'badge' => null],
                 ['label' => 'Settings', 'icon' => 'settings', 'url' => route('admin.settings.company'), 'active' => request()->routeIs('admin.settings.*'), 'badge' => null],

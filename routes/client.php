@@ -10,6 +10,7 @@ use App\Http\Controllers\Client\InvoiceController;
 use App\Http\Controllers\Client\MessageController;
 use App\Http\Controllers\Client\ProjectController;
 use App\Http\Controllers\Client\QuotationController;
+use App\Http\Controllers\Client\TestimonialController;
 use App\Http\Controllers\ComingSoonController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +46,8 @@ Route::prefix('app')
             Route::get('/files/{file}/download', [FileController::class, 'download'])->name('files.download');
 
             Route::get('/documents', [DocumentArchiveController::class, 'index'])->name('documents.index');
+
+            Route::post('/testimonials/{testimonial}', [TestimonialController::class, 'store'])->name('testimonials.store');
 
             Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
             Route::get('/{any}', ComingSoonController::class)->where('any', '.*')->name('coming-soon');
