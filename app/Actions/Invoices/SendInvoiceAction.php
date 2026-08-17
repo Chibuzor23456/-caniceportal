@@ -40,6 +40,7 @@ class SendInvoiceAction
             title: 'New invoice',
             body: "Invoice {$invoice->reference} ({$invoice->currency} ".number_format($invoice->amount, 2).') is ready.',
             url: route('client.invoices.show', $invoice),
+            type: 'invoice',
         ));
 
         return $invoice;

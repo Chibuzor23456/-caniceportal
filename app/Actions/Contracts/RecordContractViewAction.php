@@ -36,6 +36,7 @@ class RecordContractViewAction
                 title: 'Contract viewed',
                 body: "{$contract->client->company_name} viewed contract {$contract->reference}.",
                 url: route('admin.contracts.show', $contract),
+                type: 'contract',
             ));
         });
     }

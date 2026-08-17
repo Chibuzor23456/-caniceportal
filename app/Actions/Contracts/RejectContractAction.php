@@ -51,6 +51,7 @@ class RejectContractAction
                 title: 'Contract declined',
                 body: "{$contract->client->company_name} declined contract {$contract->reference}.",
                 url: route('admin.contracts.show', $contract),
+                type: 'contract',
             ));
         });
 

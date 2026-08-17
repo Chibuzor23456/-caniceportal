@@ -3,31 +3,52 @@
 namespace App\Mail;
 
 use App\Models\Message;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 
-class MessageReceivedMail extends Mailable implements ShouldQueue
+class MessageReceivedMail extends TemplatedMail
 {
-    use Queueable, SerializesModels;
-
     public function __construct(
         public Message $message,
         public bool $forAdmin = false,
     ) {}
 
-    public function build(): self
+    protected function type(): string
     {
-        return $this->subject($this->forAdmin
-                ? "New message from {$this->message->client->company_name}"
-                : 'New message from Canice Technologies')
-            ->markdown('emails.messages.received', [
-                'message' => $this->message,
-                'forAdmin' => $this->forAdmin,
-                'url' => $this->forAdmin
-                    ? route('admin.messages.show', $this->message->client)
-                    : route('client.messages.index'),
-            ]);
+        return $this->forAdmin ? 'message_received_admin' : 'message_received_client';
+    }
+
+    protected function fallbackSubject(): string
+    {
+        return $this->forAdmin
+            ? "New message from {$this->message->client->company_name}"
+            : 'New message from Canice Technologies';
+    }
+
+    protected function mailView(): string
+    {
+        return 'emails.messages.received';
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'message' => $this->message,
+            'forAdmin' => $this->forAdmin,
+            'url' => $this->url(),
+        ];
+    }
+
+    protected function templateVariables(): array
+    {
+        return [
+            'client_name' => $this->message->client->company_name,
+            'url' => $this->url(),
+        ];
+    }
+
+    private function url(): string
+    {
+        return $this->forAdmin
+            ? route('admin.messages.show', $this->message->client)
+            : route('client.messages.index');
     }
 }

@@ -31,6 +31,7 @@ class MarkInvoicePaidAction
             title: 'Payment confirmed',
             body: "We've confirmed your payment for invoice {$invoice->reference}.",
             url: route('client.invoices.show', $invoice),
+            type: 'invoice',
         ));
 
         return $invoice;

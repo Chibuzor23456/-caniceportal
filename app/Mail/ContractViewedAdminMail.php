@@ -3,23 +3,40 @@
 namespace App\Mail;
 
 use App\Models\Contract;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 
-class ContractViewedAdminMail extends Mailable implements ShouldQueue
+class ContractViewedAdminMail extends TemplatedMail
 {
-    use Queueable, SerializesModels;
-
     public function __construct(public Contract $contract) {}
 
-    public function build(): self
+    protected function type(): string
     {
-        return $this->subject("Contract {$this->contract->reference} was viewed")
-            ->markdown('emails.contracts.viewed-admin', [
-                'contract' => $this->contract,
-                'url' => route('admin.contracts.show', $this->contract),
-            ]);
+        return 'contract_viewed_admin';
+    }
+
+    protected function fallbackSubject(): string
+    {
+        return "Contract {$this->contract->reference} was viewed";
+    }
+
+    protected function mailView(): string
+    {
+        return 'emails.contracts.viewed-admin';
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'contract' => $this->contract,
+            'url' => route('admin.contracts.show', $this->contract),
+        ];
+    }
+
+    protected function templateVariables(): array
+    {
+        return [
+            'reference' => $this->contract->reference,
+            'client_name' => $this->contract->client->company_name,
+            'url' => route('admin.contracts.show', $this->contract),
+        ];
     }
 }

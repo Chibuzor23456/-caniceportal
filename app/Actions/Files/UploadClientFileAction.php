@@ -36,6 +36,7 @@ class UploadClientFileAction
             title: 'New file',
             body: "A new file (\"{$clientFile->original_filename}\") was uploaded to your account.",
             url: route('client.files.index'),
+            type: 'file',
         ));
 
         return $clientFile;

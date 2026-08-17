@@ -3,23 +3,39 @@
 namespace App\Mail;
 
 use App\Models\Invoice;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 
-class InvoiceSentMail extends Mailable implements ShouldQueue
+class InvoiceSentMail extends TemplatedMail
 {
-    use Queueable, SerializesModels;
-
     public function __construct(public Invoice $invoice) {}
 
-    public function build(): self
+    protected function type(): string
     {
-        return $this->subject("New Invoice from Canice Technologies ({$this->invoice->reference})")
-            ->markdown('emails.invoices.sent', [
-                'invoice' => $this->invoice,
-                'url' => route('client.invoices.show', $this->invoice),
-            ]);
+        return 'invoice_sent';
+    }
+
+    protected function fallbackSubject(): string
+    {
+        return "New Invoice from Canice Technologies ({$this->invoice->reference})";
+    }
+
+    protected function mailView(): string
+    {
+        return 'emails.invoices.sent';
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'invoice' => $this->invoice,
+            'url' => route('client.invoices.show', $this->invoice),
+        ];
+    }
+
+    protected function templateVariables(): array
+    {
+        return [
+            'reference' => $this->invoice->reference,
+            'url' => route('client.invoices.show', $this->invoice),
+        ];
     }
 }

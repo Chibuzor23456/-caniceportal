@@ -51,6 +51,7 @@ class RejectQuotationAction
                 title: 'Quotation declined',
                 body: "{$quotation->client->company_name} declined quotation {$quotation->reference}.",
                 url: route('admin.quotations.show', $quotation),
+                type: 'quotation',
             ));
         });
 

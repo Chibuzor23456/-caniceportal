@@ -3,29 +3,51 @@
 namespace App\Mail;
 
 use App\Models\Quotation;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 
-class QuotationAcceptedMail extends Mailable implements ShouldQueue
+class QuotationAcceptedMail extends TemplatedMail
 {
-    use Queueable, SerializesModels;
-
     public function __construct(
         public Quotation $quotation,
         public bool $forAdmin = false,
     ) {}
 
-    public function build(): self
+    protected function type(): string
     {
-        return $this->subject("Quotation {$this->quotation->reference} was accepted")
-            ->markdown('emails.quotations.accepted', [
-                'quotation' => $this->quotation,
-                'forAdmin' => $this->forAdmin,
-                'url' => $this->forAdmin
-                    ? route('admin.quotations.show', $this->quotation)
-                    : route('quotation.canonical', $this->quotation->slug),
-            ]);
+        return 'quotation_accepted';
+    }
+
+    protected function fallbackSubject(): string
+    {
+        return "Quotation {$this->quotation->reference} was accepted";
+    }
+
+    protected function mailView(): string
+    {
+        return 'emails.quotations.accepted';
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'quotation' => $this->quotation,
+            'forAdmin' => $this->forAdmin,
+            'url' => $this->url(),
+        ];
+    }
+
+    protected function templateVariables(): array
+    {
+        return [
+            'reference' => $this->quotation->reference,
+            'client_name' => $this->quotation->client->company_name,
+            'url' => $this->url(),
+        ];
+    }
+
+    private function url(): string
+    {
+        return $this->forAdmin
+            ? route('admin.quotations.show', $this->quotation)
+            : route('quotation.canonical', $this->quotation->slug);
     }
 }

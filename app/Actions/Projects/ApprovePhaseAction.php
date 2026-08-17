@@ -59,6 +59,7 @@ class ApprovePhaseAction
                 title: 'Phase approved',
                 body: "{$project->client->company_name} approved phase \"{$phase->name}\".",
                 url: route('admin.projects.show', $project),
+                type: 'project',
             ));
         });
 
@@ -82,6 +83,7 @@ class ApprovePhaseAction
                 title: 'Project completed',
                 body: "\"{$project->title}\" is complete - every phase has been approved.",
                 url: route('client.projects.show', $project),
+                type: 'project',
             ));
 
             User::admins()->get()->each(function (User $admin) use ($project) {
@@ -90,6 +92,7 @@ class ApprovePhaseAction
                     title: 'Project completed',
                     body: "\"{$project->title}\" is complete - every phase has been approved.",
                     url: route('admin.projects.show', $project),
+                    type: 'project',
                 ));
             });
 

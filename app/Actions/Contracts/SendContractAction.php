@@ -43,6 +43,7 @@ class SendContractAction
             title: 'New contract',
             body: "Contract {$contract->reference} is ready for your review.",
             url: route('client.contracts.show', $contract),
+            type: 'contract',
         ));
 
         return $contract;

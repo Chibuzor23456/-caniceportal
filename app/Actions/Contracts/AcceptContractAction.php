@@ -74,6 +74,7 @@ class AcceptContractAction
             title: 'Contract accepted',
             body: "You accepted contract {$contract->reference}.",
             url: route('client.contracts.show', $contract),
+            type: 'contract',
         ));
 
         User::admins()->get()->each(function (User $admin) use ($contract) {
@@ -82,6 +83,7 @@ class AcceptContractAction
                 title: 'Contract accepted',
                 body: "{$contract->client->company_name} accepted contract {$contract->reference}.",
                 url: route('admin.contracts.show', $contract),
+                type: 'contract',
             ));
         });
 

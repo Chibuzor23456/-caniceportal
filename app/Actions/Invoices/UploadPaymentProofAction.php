@@ -34,6 +34,7 @@ class UploadPaymentProofAction
                 title: 'Payment proof uploaded',
                 body: "{$invoice->client->company_name} uploaded proof of payment for invoice {$invoice->reference}.",
                 url: route('admin.invoices.show', $invoice),
+                type: 'invoice',
             ));
         });
 

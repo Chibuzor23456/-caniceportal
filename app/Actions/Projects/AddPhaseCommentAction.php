@@ -39,6 +39,7 @@ class AddPhaseCommentAction
                 title: 'New comment',
                 body: "{$author->name} commented on phase \"{$phase->name}\".",
                 url: route('client.projects.show', $phase->project),
+                type: 'project',
             ));
         } else {
             User::admins()->get()->each(function (User $admin) use ($phase, $comment, $author) {
@@ -47,6 +48,7 @@ class AddPhaseCommentAction
                     title: 'New comment',
                     body: "{$author->name} commented on phase \"{$phase->name}\".",
                     url: route('admin.projects.show', $phase->project),
+                    type: 'project',
                 ));
             });
         }

@@ -71,6 +71,7 @@ class CreateClientAction
                     title: 'New client',
                     body: "{$client->company_name} was added and onboarded.",
                     url: route('admin.clients.show', $client),
+                    type: 'client',
                 ));
             });
 

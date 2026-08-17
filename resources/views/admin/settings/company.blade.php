@@ -1,11 +1,13 @@
 <x-layouts.admin page-title="Company Settings" title="Company Settings">
+    <x-admin.settings-tabs active="company" />
+
     @if (session('status'))
         <div class="mb-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ session('status') }}</div>
     @endif
 
     <div class="w-full rounded-2xl bg-white p-6 shadow-sm">
         <p class="text-sm text-slate-500">
-            This signature is applied automatically to every generated quotation PDF (Section 10). The full Settings module (SMTP, email templates, notification preferences) is part of a later phase; this page covers only what the Quotation module needs today.
+            This signature is applied automatically to every generated quotation PDF (Section 10).
         </p>
 
         <form method="POST" action="{{ route('admin.settings.company.update') }}" enctype="multipart/form-data" class="mt-6 space-y-5">
@@ -31,6 +33,16 @@
                             <option value="{{ $currency }}" @selected(old('default_currency', $settings->default_currency) === $currency)>{{ $currency }}</option>
                         @endforeach
                     </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Timezone</label>
+                    <select name="timezone" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                        @foreach (['Africa/Lagos', 'UTC', 'Europe/London', 'America/New_York'] as $timezone)
+                            <option value="{{ $timezone }}" @selected(old('timezone', $settings->timezone) === $timezone)>{{ $timezone }}</option>
+                        @endforeach
+                    </select>
+                    @error('timezone') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
             </div>
 

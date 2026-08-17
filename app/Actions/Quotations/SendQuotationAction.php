@@ -36,6 +36,7 @@ class SendQuotationAction
             title: 'New quotation',
             body: "Quotation {$quotation->reference} is ready for your review.",
             url: route('client.quotations.show', $quotation),
+            type: 'quotation',
         ));
 
         return $quotation;

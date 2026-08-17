@@ -4,27 +4,44 @@ namespace App\Mail;
 
 use App\Models\ProjectPhase;
 use App\Models\ProjectPhaseDeliverable;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 
-class DeliverableUploadedMail extends Mailable implements ShouldQueue
+class DeliverableUploadedMail extends TemplatedMail
 {
-    use Queueable, SerializesModels;
-
     public function __construct(
         public ProjectPhase $phase,
         public ProjectPhaseDeliverable $deliverable,
     ) {}
 
-    public function build(): self
+    protected function type(): string
     {
-        return $this->subject("New deliverable for {$this->phase->project->title} - {$this->phase->name}")
-            ->markdown('emails.projects.deliverable-uploaded', [
-                'phase' => $this->phase,
-                'deliverable' => $this->deliverable,
-                'url' => route('client.projects.show', $this->phase->project),
-            ]);
+        return 'deliverable_uploaded';
+    }
+
+    protected function fallbackSubject(): string
+    {
+        return "New deliverable for {$this->phase->project->title} - {$this->phase->name}";
+    }
+
+    protected function mailView(): string
+    {
+        return 'emails.projects.deliverable-uploaded';
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'phase' => $this->phase,
+            'deliverable' => $this->deliverable,
+            'url' => route('client.projects.show', $this->phase->project),
+        ];
+    }
+
+    protected function templateVariables(): array
+    {
+        return [
+            'project_title' => $this->phase->project->title,
+            'phase_name' => $this->phase->name,
+            'url' => route('client.projects.show', $this->phase->project),
+        ];
     }
 }

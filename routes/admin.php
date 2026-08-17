@@ -5,12 +5,15 @@ use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\CompanySettingsController;
 use App\Http\Controllers\Admin\ContractController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\Admin\FileController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\MessageController;
+use App\Http\Controllers\Admin\NotificationSettingsController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\QuotationController;
 use App\Http\Controllers\Admin\QuotationTemplateController;
+use App\Http\Controllers\Admin\SmtpSettingsController;
 use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\TwoFactorSetupController;
 use App\Http\Controllers\ComingSoonController;
@@ -87,8 +90,18 @@ Route::prefix('admin')
         Route::get('/settings/company', [CompanySettingsController::class, 'show'])->name('settings.company');
         Route::post('/settings/company', [CompanySettingsController::class, 'update'])->name('settings.company.update');
 
-        // Every other nav item from Section 6.8 that isn't built until a later
-        // phase (full Settings beyond company/currency), kept navigable now,
-        // filled in later.
+        Route::get('/settings/smtp', [SmtpSettingsController::class, 'show'])->name('settings.smtp');
+        Route::post('/settings/smtp', [SmtpSettingsController::class, 'update'])->name('settings.smtp.update');
+        Route::post('/settings/smtp/test', [SmtpSettingsController::class, 'test'])->name('settings.smtp.test');
+
+        Route::get('/settings/notifications', [NotificationSettingsController::class, 'show'])->name('settings.notifications');
+        Route::post('/settings/notifications', [NotificationSettingsController::class, 'update'])->name('settings.notifications.update');
+
+        Route::get('/settings/email-templates', [EmailTemplateController::class, 'index'])->name('settings.email-templates.index');
+        Route::get('/settings/email-templates/{emailTemplate}', [EmailTemplateController::class, 'edit'])->name('settings.email-templates.edit');
+        Route::patch('/settings/email-templates/{emailTemplate}', [EmailTemplateController::class, 'update'])->name('settings.email-templates.update');
+
+        // Every other nav item from Section 6.8 that isn't built until a
+        // later phase, kept navigable now, filled in later.
         Route::get('/{any}', ComingSoonController::class)->where('any', '.*')->name('coming-soon');
     });

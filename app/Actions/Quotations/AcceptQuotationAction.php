@@ -85,6 +85,7 @@ class AcceptQuotationAction
             title: 'Quotation accepted',
             body: "You accepted quotation {$quotation->reference}. A project has been created.",
             url: route('client.quotations.show', $quotation),
+            type: 'quotation',
         ));
 
         User::admins()->get()->each(function (User $admin) use ($quotation) {
@@ -93,6 +94,7 @@ class AcceptQuotationAction
                 title: 'Quotation accepted',
                 body: "{$quotation->client->company_name} accepted quotation {$quotation->reference}.",
                 url: route('admin.quotations.show', $quotation),
+                type: 'quotation',
             ));
         });
 

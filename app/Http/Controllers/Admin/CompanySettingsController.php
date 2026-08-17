@@ -33,6 +33,7 @@ class CompanySettingsController extends Controller
             'signatory_name' => ['required', 'string', 'max:255'],
             'signatory_position' => ['required', 'string', 'max:255'],
             'default_currency' => ['required', 'string', 'size:3'],
+            'timezone' => ['required', 'string', 'timezone'],
             'bank_details' => ['nullable', 'string', 'max:2000'],
             'signature_image' => ['nullable', 'image', 'max:2048'],
         ]);

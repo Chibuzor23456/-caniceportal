@@ -3,26 +3,42 @@
 namespace App\Mail;
 
 use App\Models\Quotation;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 
-class QuotationExpiredMail extends Mailable implements ShouldQueue
+class QuotationExpiredMail extends TemplatedMail
 {
-    use Queueable, SerializesModels;
-
     public function __construct(
         public Quotation $quotation,
         public bool $forAdmin = false,
     ) {}
 
-    public function build(): self
+    protected function type(): string
     {
-        return $this->subject("Quotation {$this->quotation->reference} has expired")
-            ->markdown('emails.quotations.expired', [
-                'quotation' => $this->quotation,
-                'forAdmin' => $this->forAdmin,
-            ]);
+        return 'quotation_expired';
+    }
+
+    protected function fallbackSubject(): string
+    {
+        return "Quotation {$this->quotation->reference} has expired";
+    }
+
+    protected function mailView(): string
+    {
+        return 'emails.quotations.expired';
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'quotation' => $this->quotation,
+            'forAdmin' => $this->forAdmin,
+        ];
+    }
+
+    protected function templateVariables(): array
+    {
+        return [
+            'reference' => $this->quotation->reference,
+            'client_name' => $this->quotation->client->company_name,
+        ];
     }
 }

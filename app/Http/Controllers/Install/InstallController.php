@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Install;
 
+use App\Actions\Settings\TestSmtpConnectionAction;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -15,8 +16,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 use PDO;
 use PDOException;
-use PHPMailer\PHPMailer\Exception as PHPMailerException;
-use PHPMailer\PHPMailer\PHPMailer;
 
 class InstallController extends Controller
 {
@@ -66,6 +65,7 @@ class InstallController extends Controller
 
         try {
             Artisan::call('migrate', ['--force' => true]);
+            Artisan::call('db:seed', ['--class' => \Database\Seeders\EmailTemplateSeeder::class, '--force' => true]);
         } catch (\Throwable $e) {
             return view('install.database', ['migrationError' => $e->getMessage()]);
         }
@@ -84,36 +84,11 @@ class InstallController extends Controller
         return view('install.mail');
     }
 
-    public function testMail(Request $request): JsonResponse
+    public function testMail(Request $request, TestSmtpConnectionAction $action): JsonResponse
     {
         $data = $request->validate($this->mailRules());
 
-        $mailer = new PHPMailer(true);
-
-        try {
-            $mailer->isSMTP();
-            $mailer->Host = $data['host'];
-            $mailer->Port = (int) $data['port'];
-            $mailer->SMTPSecure = $data['encryption'] === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
-
-            if (! empty($data['username'])) {
-                $mailer->SMTPAuth = true;
-                $mailer->Username = $data['username'];
-                $mailer->Password = $data['password'] ?? '';
-            }
-
-            $mailer->Timeout = 10;
-
-            if (! $mailer->smtpConnect()) {
-                return response()->json(['success' => false, 'message' => $mailer->ErrorInfo ?: 'Could not connect.']);
-            }
-
-            $mailer->smtpClose();
-
-            return response()->json(['success' => true, 'message' => 'Connected and authenticated successfully.']);
-        } catch (PHPMailerException $e) {
-            return response()->json(['success' => false, 'message' => $mailer->ErrorInfo ?: $e->getMessage()]);
-        }
+        return response()->json($action->handle($data));
     }
 
     public function saveMail(Request $request): RedirectResponse
@@ -126,7 +101,7 @@ class InstallController extends Controller
 
         EnvFileWriter::set([
             'MAIL_MAILER' => 'smtp',
-            'MAIL_SCHEME' => 'smtp',
+            'MAIL_SCHEME' => $data['encryption'] === 'ssl' ? 'smtps' : 'smtp',
             'MAIL_HOST' => $data['host'],
             'MAIL_PORT' => $data['port'],
             'MAIL_USERNAME' => $data['username'] ?? '',

@@ -48,6 +48,7 @@ class SendMessageAction
                     title: 'New message',
                     body: 'You have a new message from Canice Technologies.',
                     url: route('client.messages.index'),
+                    type: 'message',
                 ));
             }
         } else {
@@ -57,6 +58,7 @@ class SendMessageAction
                     title: 'New message',
                     body: "{$client->company_name} sent a new message.",
                     url: route('admin.messages.show', $client),
+                    type: 'message',
                 ));
             });
         }

@@ -141,6 +141,7 @@ class DeployApplication implements ShouldQueue
     {
         $steps = [
             ['migrate', ['--force' => true]],
+            ['db:seed', ['--class' => \Database\Seeders\EmailTemplateSeeder::class, '--force' => true]],
             ['view:clear', []],
             ['route:clear', []],
             ['config:clear', []],
@@ -161,7 +162,7 @@ class DeployApplication implements ShouldQueue
             : "Deploy failed: {$reason}. See storage/logs/deploy.log for details.";
 
         User::admins()->get()->each(
-            fn (User $admin) => $admin->notify(new GenericNotification(title: $title, body: $body))
+            fn (User $admin) => $admin->notify(new GenericNotification(title: $title, body: $body, type: 'system'))
         );
     }
 }

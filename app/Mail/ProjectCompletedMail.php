@@ -3,29 +3,51 @@
 namespace App\Mail;
 
 use App\Models\Project;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 
-class ProjectCompletedMail extends Mailable implements ShouldQueue
+class ProjectCompletedMail extends TemplatedMail
 {
-    use Queueable, SerializesModels;
-
     public function __construct(
         public Project $project,
         public bool $forAdmin = false,
     ) {}
 
-    public function build(): self
+    protected function type(): string
     {
-        return $this->subject("Project completed: {$this->project->title}")
-            ->markdown('emails.projects.completed', [
-                'project' => $this->project,
-                'forAdmin' => $this->forAdmin,
-                'url' => $this->forAdmin
-                    ? route('admin.projects.show', $this->project)
-                    : route('client.projects.show', $this->project),
-            ]);
+        return 'project_completed';
+    }
+
+    protected function fallbackSubject(): string
+    {
+        return "Project completed: {$this->project->title}";
+    }
+
+    protected function mailView(): string
+    {
+        return 'emails.projects.completed';
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'project' => $this->project,
+            'forAdmin' => $this->forAdmin,
+            'url' => $this->url(),
+        ];
+    }
+
+    protected function templateVariables(): array
+    {
+        return [
+            'project_title' => $this->project->title,
+            'client_name' => $this->project->client->company_name,
+            'url' => $this->url(),
+        ];
+    }
+
+    private function url(): string
+    {
+        return $this->forAdmin
+            ? route('admin.projects.show', $this->project)
+            : route('client.projects.show', $this->project);
     }
 }

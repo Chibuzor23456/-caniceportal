@@ -3,23 +3,40 @@
 namespace App\Mail;
 
 use App\Models\Quotation;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 
-class QuotationRejectedMail extends Mailable implements ShouldQueue
+class QuotationRejectedMail extends TemplatedMail
 {
-    use Queueable, SerializesModels;
-
     public function __construct(public Quotation $quotation) {}
 
-    public function build(): self
+    protected function type(): string
     {
-        return $this->subject("Quotation {$this->quotation->reference} was declined")
-            ->markdown('emails.quotations.rejected', [
-                'quotation' => $this->quotation,
-                'adminUrl' => route('admin.quotations.show', $this->quotation),
-            ]);
+        return 'quotation_rejected';
+    }
+
+    protected function fallbackSubject(): string
+    {
+        return "Quotation {$this->quotation->reference} was declined";
+    }
+
+    protected function mailView(): string
+    {
+        return 'emails.quotations.rejected';
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'quotation' => $this->quotation,
+            'adminUrl' => route('admin.quotations.show', $this->quotation),
+        ];
+    }
+
+    protected function templateVariables(): array
+    {
+        return [
+            'reference' => $this->quotation->reference,
+            'client_name' => $this->quotation->client->company_name,
+            'admin_url' => route('admin.quotations.show', $this->quotation),
+        ];
     }
 }

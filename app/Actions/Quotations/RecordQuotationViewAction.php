@@ -39,6 +39,7 @@ class RecordQuotationViewAction
                 title: 'Quotation viewed',
                 body: "{$quotation->client->company_name} viewed quotation {$quotation->reference}.",
                 url: route('admin.quotations.show', $quotation),
+                type: 'quotation',
             ));
         });
     }

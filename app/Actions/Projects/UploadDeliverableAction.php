@@ -51,6 +51,7 @@ class UploadDeliverableAction
             title: 'New deliverable',
             body: "A new deliverable is ready for review on \"{$phase->name}\".",
             url: route('client.projects.show', $phase->project),
+            type: 'project',
         ));
 
         return $deliverable;

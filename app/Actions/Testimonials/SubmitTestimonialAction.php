@@ -29,6 +29,7 @@ class SubmitTestimonialAction
                 title: 'New testimonial',
                 body: "{$testimonial->client->company_name} left a {$rating}-star testimonial.",
                 url: route('admin.testimonials.index'),
+                type: 'testimonial',
             ));
         });
 

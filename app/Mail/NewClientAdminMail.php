@@ -3,23 +3,39 @@
 namespace App\Mail;
 
 use App\Models\Client;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 
-class NewClientAdminMail extends Mailable implements ShouldQueue
+class NewClientAdminMail extends TemplatedMail
 {
-    use Queueable, SerializesModels;
-
     public function __construct(public Client $client) {}
 
-    public function build(): self
+    protected function type(): string
     {
-        return $this->subject("New client: {$this->client->company_name}")
-            ->markdown('emails.clients.new-client-admin', [
-                'client' => $this->client,
-                'url' => route('admin.clients.show', $this->client),
-            ]);
+        return 'new_client_admin';
+    }
+
+    protected function fallbackSubject(): string
+    {
+        return "New client: {$this->client->company_name}";
+    }
+
+    protected function mailView(): string
+    {
+        return 'emails.clients.new-client-admin';
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'client' => $this->client,
+            'url' => route('admin.clients.show', $this->client),
+        ];
+    }
+
+    protected function templateVariables(): array
+    {
+        return [
+            'client_name' => $this->client->company_name,
+            'url' => route('admin.clients.show', $this->client),
+        ];
     }
 }

@@ -3,23 +3,41 @@
 namespace App\Mail;
 
 use App\Models\ProjectPhase;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 
-class PhaseApprovedMail extends Mailable implements ShouldQueue
+class PhaseApprovedMail extends TemplatedMail
 {
-    use Queueable, SerializesModels;
-
     public function __construct(public ProjectPhase $phase) {}
 
-    public function build(): self
+    protected function type(): string
     {
-        return $this->subject("Phase approved: {$this->phase->project->title} - {$this->phase->name}")
-            ->markdown('emails.projects.phase-approved', [
-                'phase' => $this->phase,
-                'url' => route('admin.projects.show', $this->phase->project),
-            ]);
+        return 'phase_approved';
+    }
+
+    protected function fallbackSubject(): string
+    {
+        return "Phase approved: {$this->phase->project->title} - {$this->phase->name}";
+    }
+
+    protected function mailView(): string
+    {
+        return 'emails.projects.phase-approved';
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'phase' => $this->phase,
+            'url' => route('admin.projects.show', $this->phase->project),
+        ];
+    }
+
+    protected function templateVariables(): array
+    {
+        return [
+            'project_title' => $this->phase->project->title,
+            'phase_name' => $this->phase->name,
+            'client_name' => $this->phase->project->client->company_name,
+            'url' => route('admin.projects.show', $this->phase->project),
+        ];
     }
 }

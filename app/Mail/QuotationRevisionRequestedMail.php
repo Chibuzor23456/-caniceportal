@@ -3,23 +3,40 @@
 namespace App\Mail;
 
 use App\Models\Quotation;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 
-class QuotationRevisionRequestedMail extends Mailable implements ShouldQueue
+class QuotationRevisionRequestedMail extends TemplatedMail
 {
-    use Queueable, SerializesModels;
-
     public function __construct(public Quotation $quotation) {}
 
-    public function build(): self
+    protected function type(): string
     {
-        return $this->subject("Revision requested for expired quotation {$this->quotation->reference}")
-            ->markdown('emails.quotations.revision-requested', [
-                'quotation' => $this->quotation,
-                'adminUrl' => route('admin.quotations.show', $this->quotation),
-            ]);
+        return 'quotation_revision_requested';
+    }
+
+    protected function fallbackSubject(): string
+    {
+        return "Revision requested for expired quotation {$this->quotation->reference}";
+    }
+
+    protected function mailView(): string
+    {
+        return 'emails.quotations.revision-requested';
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'quotation' => $this->quotation,
+            'adminUrl' => route('admin.quotations.show', $this->quotation),
+        ];
+    }
+
+    protected function templateVariables(): array
+    {
+        return [
+            'reference' => $this->quotation->reference,
+            'client_name' => $this->quotation->client->company_name,
+            'admin_url' => route('admin.quotations.show', $this->quotation),
+        ];
     }
 }

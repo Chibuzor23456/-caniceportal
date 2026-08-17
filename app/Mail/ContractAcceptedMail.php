@@ -3,29 +3,51 @@
 namespace App\Mail;
 
 use App\Models\Contract;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 
-class ContractAcceptedMail extends Mailable implements ShouldQueue
+class ContractAcceptedMail extends TemplatedMail
 {
-    use Queueable, SerializesModels;
-
     public function __construct(
         public Contract $contract,
         public bool $forAdmin = false,
     ) {}
 
-    public function build(): self
+    protected function type(): string
     {
-        return $this->subject("Contract {$this->contract->reference} was accepted")
-            ->markdown('emails.contracts.accepted', [
-                'contract' => $this->contract,
-                'forAdmin' => $this->forAdmin,
-                'url' => $this->forAdmin
-                    ? route('admin.contracts.show', $this->contract)
-                    : route('contract.canonical', $this->contract->slug),
-            ]);
+        return 'contract_accepted';
+    }
+
+    protected function fallbackSubject(): string
+    {
+        return "Contract {$this->contract->reference} was accepted";
+    }
+
+    protected function mailView(): string
+    {
+        return 'emails.contracts.accepted';
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'contract' => $this->contract,
+            'forAdmin' => $this->forAdmin,
+            'url' => $this->url(),
+        ];
+    }
+
+    protected function templateVariables(): array
+    {
+        return [
+            'reference' => $this->contract->reference,
+            'client_name' => $this->contract->client->company_name,
+            'url' => $this->url(),
+        ];
+    }
+
+    private function url(): string
+    {
+        return $this->forAdmin
+            ? route('admin.contracts.show', $this->contract)
+            : route('contract.canonical', $this->contract->slug);
     }
 }
