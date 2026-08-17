@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\CompanySettingsController;
 use App\Http\Controllers\Admin\ContractController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FileController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\ProjectController;
@@ -72,6 +73,9 @@ Route::prefix('admin')
         Route::post('/invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid'])->name('invoices.mark-paid');
         Route::post('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
 
+        Route::get('/files', [FileController::class, 'index'])->name('files.index');
+        Route::get('/files/{file}/download', [FileController::class, 'download'])->name('files.download');
+
         Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
         Route::get('/messages/{client}', [MessageController::class, 'show'])->name('messages.show');
 
@@ -81,6 +85,7 @@ Route::prefix('admin')
         Route::post('/settings/company', [CompanySettingsController::class, 'update'])->name('settings.company.update');
 
         // Every other nav item from Section 6.8 that isn't built until a later
-        // phase (Files, full Settings), kept navigable now, filled in later.
+        // phase (full Settings beyond company/currency), kept navigable now,
+        // filled in later.
         Route::get('/{any}', ComingSoonController::class)->where('any', '.*')->name('coming-soon');
     });

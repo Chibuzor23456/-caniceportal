@@ -81,7 +81,8 @@
         </div>
         <div class="rounded-2xl bg-white p-6 shadow-sm">
             <h2 class="text-sm font-semibold text-slate-900">Document Archive</h2>
-            <p class="mt-8 text-center text-sm text-slate-400">Coming in a later phase.</p>
+            <p class="mt-4 text-sm text-slate-500">Every signed quotation, signed contract, and paid invoice, in one place.</p>
+            <a href="{{ route('client.documents.index') }}" class="mt-4 inline-block text-sm font-medium text-brand hover:text-brand-emphasis">Browse Documents &rarr;</a>
         </div>
     </div>
 </x-layouts.client>

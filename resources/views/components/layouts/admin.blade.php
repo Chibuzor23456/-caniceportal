@@ -33,7 +33,7 @@
             'label' => 'Manage',
             'items' => [
                 ['label' => 'Contracts', 'icon' => 'contracts', 'url' => route('admin.contracts.index'), 'active' => request()->routeIs('admin.contracts.*'), 'badge' => $pendingContracts ?: null],
-                ['label' => 'Files', 'icon' => 'files', 'url' => route('admin.coming-soon', ['any' => 'files']), 'active' => request()->is('admin/files*'), 'badge' => null],
+                ['label' => 'Files', 'icon' => 'files', 'url' => route('admin.files.index'), 'active' => request()->routeIs('admin.files.*'), 'badge' => null],
                 ['label' => 'Messages', 'icon' => 'messages', 'url' => route('admin.messages.index'), 'active' => request()->routeIs('admin.messages.*'), 'badge' => $unreadMessages ?: null],
                 ['label' => 'Activity Log', 'icon' => 'activity', 'url' => route('admin.activity.index'), 'active' => request()->routeIs('admin.activity.*'), 'badge' => null],
                 ['label' => 'Settings', 'icon' => 'settings', 'url' => route('admin.settings.company'), 'active' => request()->routeIs('admin.settings.*'), 'badge' => null],

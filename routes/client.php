@@ -3,6 +3,8 @@
 use App\Http\Controllers\Client\ActivityController;
 use App\Http\Controllers\Client\ContractController;
 use App\Http\Controllers\Client\DashboardController;
+use App\Http\Controllers\Client\DocumentArchiveController;
+use App\Http\Controllers\Client\FileController;
 use App\Http\Controllers\Client\ForcePasswordChangeController;
 use App\Http\Controllers\Client\InvoiceController;
 use App\Http\Controllers\Client\MessageController;
@@ -39,10 +41,12 @@ Route::prefix('app')
 
             Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
 
-            Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
+            Route::get('/files', [FileController::class, 'index'])->name('files.index');
+            Route::get('/files/{file}/download', [FileController::class, 'download'])->name('files.download');
 
-            // Every other nav item from Section 6.8 that isn't built until a
-            // later phase (Documents), kept navigable now, filled in later.
+            Route::get('/documents', [DocumentArchiveController::class, 'index'])->name('documents.index');
+
+            Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
             Route::get('/{any}', ComingSoonController::class)->where('any', '.*')->name('coming-soon');
         });
     });
