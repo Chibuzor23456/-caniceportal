@@ -55,4 +55,19 @@ class Client extends Model
     {
         return $this->hasMany(ActivityLog::class)->latest('created_at');
     }
+
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(Contract::class);
+    }
+
+    public function files(): HasMany
+    {
+        return $this->hasMany(ClientFile::class);
+    }
+
+    public function testimonials(): HasMany
+    {
+        return $this->hasMany(Testimonial::class);
+    }
 }

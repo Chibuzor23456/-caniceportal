@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\CanonicalContractController;
 use App\Http\Controllers\CanonicalQuotationController;
 use App\Http\Controllers\DeployWebhookController;
+use App\Http\Controllers\Public\SecureContractController;
 use App\Http\Controllers\Public\SecureQuotationController;
 use App\Http\Controllers\Public\VerificationController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +34,15 @@ Route::get('/verify/{reference}', VerificationController::class)->name('quotatio
 Route::get('/quotation/{slug}', CanonicalQuotationController::class)
     ->middleware('auth')
     ->name('quotation.canonical');
+
+// Contracts (Section 14) - same public token/canonical pattern as quotations.
+Route::get('/c/{token}', [SecureContractController::class, 'show'])->name('contract.secure');
+Route::post('/c/{token}/accept', [SecureContractController::class, 'accept'])->name('contract.secure.accept');
+Route::post('/c/{token}/reject', [SecureContractController::class, 'reject'])->name('contract.secure.reject');
+
+Route::get('/contract/{slug}', CanonicalContractController::class)
+    ->middleware('auth')
+    ->name('contract.canonical');
 
 require __DIR__.'/admin.php';
 require __DIR__.'/client.php';

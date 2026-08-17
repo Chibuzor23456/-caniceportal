@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\CompanySettingsController;
+use App\Http\Controllers\Admin\ContractController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\MessageController;
@@ -53,6 +54,12 @@ Route::prefix('admin')
 
         Route::get('/quotation-templates', [QuotationTemplateController::class, 'index'])->name('quotation-templates.index');
 
+        Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
+        Route::get('/contracts/create', [ContractController::class, 'create'])->name('contracts.create');
+        Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
+        Route::get('/contracts/{contract}', [ContractController::class, 'show'])->name('contracts.show');
+        Route::post('/contracts/{contract}/send', [ContractController::class, 'send'])->name('contracts.send');
+
         Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
         Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
         Route::post('/projects/{project}/invoices', [InvoiceController::class, 'store'])->name('projects.invoices.store');
@@ -74,6 +81,6 @@ Route::prefix('admin')
         Route::post('/settings/company', [CompanySettingsController::class, 'update'])->name('settings.company.update');
 
         // Every other nav item from Section 6.8 that isn't built until a later
-        // phase (Contracts, Files, Settings), kept navigable now, filled in later.
+        // phase (Files, full Settings), kept navigable now, filled in later.
         Route::get('/{any}', ComingSoonController::class)->where('any', '.*')->name('coming-soon');
     });

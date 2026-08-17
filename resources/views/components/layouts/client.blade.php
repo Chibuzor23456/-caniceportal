@@ -1,8 +1,10 @@
 @props(['title' => null, 'pageTitle' => null, 'freshness' => null])
 @php
+    use App\Enums\ContractStatus;
     use App\Enums\InvoiceStatus;
     use App\Enums\ProjectStatus;
     use App\Enums\QuotationStatus;
+    use App\Models\Contract;
     use App\Models\Invoice;
     use App\Models\Message;
     use App\Models\Project;
@@ -21,6 +23,9 @@
     $unreadMessages = $client
         ? Message::where('client_id', $client->id)->whereNull('read_at')->whereHas('sender', fn ($q) => $q->where('role', 'admin'))->count()
         : 0;
+    $pendingContracts = $client
+        ? Contract::where('client_id', $client->id)->whereIn('status', [ContractStatus::Sent, ContractStatus::Viewed])->count()
+        : 0;
 
     $navGroups = [
         [
@@ -34,7 +39,7 @@
             'items' => [
                 ['label' => 'My Projects', 'icon' => 'projects', 'url' => route('client.projects.index'), 'active' => request()->routeIs('client.projects.*'), 'badge' => $activeProjects ?: null],
                 ['label' => 'Quotations', 'icon' => 'quotations', 'url' => route('client.quotations.index'), 'active' => request()->routeIs('client.quotations.*'), 'badge' => $pendingQuotations ?: null],
-                ['label' => 'Contracts', 'icon' => 'contracts', 'url' => route('client.coming-soon', ['any' => 'contracts']), 'active' => request()->is('app/contracts*'), 'badge' => null],
+                ['label' => 'Contracts', 'icon' => 'contracts', 'url' => route('client.contracts.index'), 'active' => request()->routeIs('client.contracts.*'), 'badge' => $pendingContracts ?: null],
                 ['label' => 'Documents', 'icon' => 'documents', 'url' => route('client.coming-soon', ['any' => 'documents']), 'active' => request()->is('app/documents*'), 'badge' => null],
                 ['label' => 'Invoices', 'icon' => 'invoices', 'url' => route('client.invoices.index'), 'active' => request()->routeIs('client.invoices.*'), 'badge' => $outstandingInvoices ?: null],
                 ['label' => 'Messages', 'icon' => 'messages', 'url' => route('client.messages.index'), 'active' => request()->routeIs('client.messages.*'), 'badge' => $unreadMessages ?: null],

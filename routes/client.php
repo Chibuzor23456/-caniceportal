@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Client\ActivityController;
+use App\Http\Controllers\Client\ContractController;
 use App\Http\Controllers\Client\DashboardController;
 use App\Http\Controllers\Client\ForcePasswordChangeController;
 use App\Http\Controllers\Client\InvoiceController;
@@ -29,6 +30,9 @@ Route::prefix('app')
             Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
             Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
 
+            Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
+            Route::get('/contracts/{contract:reference}', [ContractController::class, 'show'])->name('contracts.show');
+
             Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
             Route::get('/invoices/{invoice:reference}', [InvoiceController::class, 'show'])->name('invoices.show');
             Route::post('/invoices/{invoice:reference}/payment-proof', [InvoiceController::class, 'uploadProof'])->name('invoices.payment-proof');
@@ -38,8 +42,7 @@ Route::prefix('app')
             Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
 
             // Every other nav item from Section 6.8 that isn't built until a
-            // later phase (Contracts, Documents), kept navigable now, filled
-            // in later.
+            // later phase (Documents), kept navigable now, filled in later.
             Route::get('/{any}', ComingSoonController::class)->where('any', '.*')->name('coming-soon');
         });
     });

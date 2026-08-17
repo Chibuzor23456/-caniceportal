@@ -1,9 +1,11 @@
 @props(['title' => null, 'pageTitle' => null, 'freshness' => null])
 @php
+    use App\Enums\ContractStatus;
     use App\Enums\InvoiceStatus;
     use App\Enums\PhaseStatus;
     use App\Enums\QuotationStatus;
     use App\Models\Client;
+    use App\Models\Contract;
     use App\Models\Invoice;
     use App\Models\Message;
     use App\Models\ProjectPhase;
@@ -14,6 +16,7 @@
     $phasesAwaitingReview = ProjectPhase::whereIn('status', [PhaseStatus::PendingReview, PhaseStatus::InDiscussion])->count();
     $pendingInvoices = Invoice::whereIn('status', [InvoiceStatus::Sent, InvoiceStatus::Overdue])->count();
     $unreadMessages = Message::whereNull('read_at')->whereHas('sender', fn ($q) => $q->where('role', 'client'))->count();
+    $pendingContracts = Contract::whereIn('status', [ContractStatus::Sent, ContractStatus::Viewed])->count();
 
     $navGroups = [
         [
@@ -29,7 +32,7 @@
         [
             'label' => 'Manage',
             'items' => [
-                ['label' => 'Contracts', 'icon' => 'contracts', 'url' => route('admin.coming-soon', ['any' => 'contracts']), 'active' => request()->is('admin/contracts*'), 'badge' => null],
+                ['label' => 'Contracts', 'icon' => 'contracts', 'url' => route('admin.contracts.index'), 'active' => request()->routeIs('admin.contracts.*'), 'badge' => $pendingContracts ?: null],
                 ['label' => 'Files', 'icon' => 'files', 'url' => route('admin.coming-soon', ['any' => 'files']), 'active' => request()->is('admin/files*'), 'badge' => null],
                 ['label' => 'Messages', 'icon' => 'messages', 'url' => route('admin.messages.index'), 'active' => request()->routeIs('admin.messages.*'), 'badge' => $unreadMessages ?: null],
                 ['label' => 'Activity Log', 'icon' => 'activity', 'url' => route('admin.activity.index'), 'active' => request()->routeIs('admin.activity.*'), 'badge' => null],
