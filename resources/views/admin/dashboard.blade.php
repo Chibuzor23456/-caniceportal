@@ -53,6 +53,24 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
             </x-slot:icon>
         </x-ui.stat-card>
+
+        <x-ui.stat-card label="Completed Projects" :value="$completedProjects" color="green">
+            <x-slot:icon>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>
+            </x-slot:icon>
+        </x-ui.stat-card>
+
+        <x-ui.stat-card label="Files Uploaded" :value="$filesUploaded" color="slate">
+            <x-slot:icon>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
+            </x-slot:icon>
+        </x-ui.stat-card>
+
+        <x-ui.stat-card label="Conversion Rate" :value="$conversionRate.'%'" color="purple">
+            <x-slot:icon>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            </x-slot:icon>
+        </x-ui.stat-card>
     </div>
 
     <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -104,9 +122,124 @@
     </div>
 
     <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div class="rounded-2xl bg-white p-6 shadow-sm lg:col-span-2">
+            <h2 class="text-sm font-semibold text-slate-900">Revenue Overview</h2>
+            <div class="mt-6 flex h-40 items-end gap-3">
+                @foreach ($revenueByWeek['weeks'] as $week)
+                    <div class="flex flex-1 flex-col items-center gap-1">
+                        <div class="flex h-32 w-full items-end">
+                            <div class="w-full rounded-t bg-brand" style="height: {{ max(2, ($week['amount'] / $revenueByWeek['max']) * 100) }}%"></div>
+                        </div>
+                        <span class="text-[10px] text-slate-400">{{ $week['label'] }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-900">Top Clients by Revenue</h2>
+            <ul class="mt-4 space-y-3">
+                @forelse ($topClientsByRevenue as $client)
+                    <li class="flex items-center justify-between text-sm">
+                        <span class="text-slate-700">{{ $client->company_name }}</span>
+                        <span class="font-medium text-slate-900">{{ $currency }} {{ number_format($client->revenue, 0) }}</span>
+                    </li>
+                @empty
+                    <li class="text-sm text-slate-400">No paid invoices yet.</li>
+                @endforelse
+            </ul>
+        </div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div class="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-900">Projects by Status</h2>
+            <div class="mt-6">
+                @if (count($projectsByStatus) > 0)
+                    <x-ui.donut :segments="$projectsByStatus" />
+                @else
+                    <p class="text-center text-sm text-slate-400">No projects yet.</p>
+                @endif
+            </div>
+        </div>
+
+        <div class="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-900">Client Growth</h2>
+            <div class="mt-6 flex h-32 items-end gap-3">
+                @foreach ($clientGrowth['months'] as $month)
+                    <div class="flex flex-1 flex-col items-center gap-1">
+                        <div class="flex h-24 w-full items-end">
+                            <div class="w-full rounded-t bg-emerald-400" style="height: {{ max(2, ($month['count'] / $clientGrowth['max']) * 100) }}%"></div>
+                        </div>
+                        <span class="text-[10px] text-slate-400">{{ $month['label'] }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-900">Payment Collection Rate</h2>
+            <div class="mt-6 flex flex-col items-center justify-center">
+                <x-ui.donut
+                    :segments="[
+                        ['label' => 'Collected', 'value' => $paymentCollectionRate, 'color' => '#10b981'],
+                        ['label' => 'Outstanding', 'value' => max(0, 100 - $paymentCollectionRate), 'color' => '#e2e8f0'],
+                    ]"
+                    :center-value="$paymentCollectionRate.'%'"
+                    center-label="Collected"
+                />
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div class="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-900">Revenue by Service</h2>
+            <div class="mt-4 space-y-3">
+                @forelse ($revenueByService['rows'] as $row)
+                    <div>
+                        <div class="flex items-center justify-between text-xs text-slate-500">
+                            <span>{{ $row->service_category }}</span>
+                            <span class="font-medium text-slate-700">{{ $currency }} {{ number_format($row->total, 0) }}</span>
+                        </div>
+                        <div class="mt-1 h-2 w-full rounded-full bg-slate-100">
+                            <div class="h-2 rounded-full bg-brand" style="width: {{ max(2, ($row->total / $revenueByService['max']) * 100) }}%"></div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-sm text-slate-400">No accepted quotations with a service category yet.</p>
+                @endforelse
+            </div>
+        </div>
+
+        <div class="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-900">Smart Insights</h2>
+            <ul class="mt-4 space-y-3">
+                @forelse ($insights as $insight)
+                    <li class="flex gap-2 text-sm text-slate-700">
+                        <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand"></span>
+                        {{ $insight }}
+                    </li>
+                @empty
+                    <li class="text-sm text-slate-400">Nothing needs your attention right now.</li>
+                @endforelse
+            </ul>
+        </div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="rounded-2xl bg-white p-6 shadow-sm">
             <h2 class="text-sm font-semibold text-slate-900">Recent Client Messages</h2>
-            <p class="mt-8 text-center text-sm text-slate-400">Coming in a later phase.</p>
+            <ul class="mt-4 space-y-4">
+                @forelse ($recentMessages as $message)
+                    <li>
+                        <p class="text-sm text-slate-700"><span class="font-medium">{{ $message->client->company_name }}</span> &middot; {{ \Illuminate\Support\Str::limit($message->body, 60) }}</p>
+                        <p class="text-xs text-slate-400">{{ $message->created_at->diffForHumans() }}</p>
+                    </li>
+                @empty
+                    <li class="text-sm text-slate-400">No messages yet.</li>
+                @endforelse
+            </ul>
         </div>
         <div class="rounded-2xl bg-white p-6 shadow-sm">
             <h2 class="text-sm font-semibold text-slate-900">Calendar Overview</h2>
@@ -114,7 +247,17 @@
         </div>
         <div class="rounded-2xl bg-white p-6 shadow-sm">
             <h2 class="text-sm font-semibold text-slate-900">Email Delivery Health</h2>
-            <p class="mt-8 text-center text-sm text-slate-400">Coming in a later phase.</p>
+            <p class="mt-4 text-xs text-slate-400">Last 7 days</p>
+            <div class="mt-3 flex gap-4 text-sm">
+                <span class="text-emerald-600">{{ $emailHealth['sent'] }} sent</span>
+                <span class="text-red-600">{{ $emailHealth['failed'] }} failed</span>
+                <span class="text-orange-600">{{ $emailHealth['bounced'] }} bounced</span>
+            </div>
+            <ul class="mt-4 space-y-2">
+                @foreach ($emailHealth['recentFailures'] as $log)
+                    <li class="text-xs text-slate-500">{{ $log->recipient }} &middot; {{ $log->status->label() }}</li>
+                @endforeach
+            </ul>
         </div>
     </div>
 </x-layouts.admin>

@@ -54,7 +54,7 @@
             </x-slot:icon>
         </x-ui.stat-card>
 
-        <x-ui.stat-card label="Recent Files" value="0" color="slate" zero-state>
+        <x-ui.stat-card label="Files Shared" :value="$filesCount" color="slate">
             <x-slot:icon>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7"/></svg>
             </x-slot:icon>
@@ -108,6 +108,94 @@
             <h2 class="text-sm font-semibold text-slate-900">Document Archive</h2>
             <p class="mt-4 text-sm text-slate-500">Every signed quotation, signed contract, and paid invoice, in one place.</p>
             <a href="{{ route('client.documents.index') }}" class="mt-4 inline-block text-sm font-medium text-brand hover:text-brand-emphasis">Browse Documents &rarr;</a>
+        </div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div class="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-900">Project Phase Breakdown</h2>
+            <div class="mt-6">
+                @if (count($phaseBreakdown) > 0)
+                    <x-ui.donut :segments="$phaseBreakdown" />
+                @else
+                    <p class="text-center text-sm text-slate-400">No project yet.</p>
+                @endif
+            </div>
+        </div>
+
+        <div class="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-900">Contract Status</h2>
+            <ul class="mt-4 space-y-3">
+                @forelse ($contracts as $contract)
+                    <li class="flex items-center justify-between text-sm">
+                        <span class="text-slate-700">{{ $contract->title }}</span>
+                        <x-ui.pill :color="$contract->status->pillColor()">{{ $contract->status->label() }}</x-ui.pill>
+                    </li>
+                @empty
+                    <li class="text-sm text-slate-400">No contracts yet.</li>
+                @endforelse
+            </ul>
+        </div>
+
+        <div class="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-900">Shared Files by Category</h2>
+            <ul class="mt-4 space-y-3">
+                @forelse ($filesByCategory as $category => $count)
+                    <li class="flex items-center justify-between text-sm">
+                        <span class="text-slate-700">{{ $category }}</span>
+                        <span class="font-medium text-slate-900">{{ $count }}</span>
+                    </li>
+                @empty
+                    <li class="text-sm text-slate-400">No files shared yet.</li>
+                @endforelse
+            </ul>
+        </div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div class="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-900">Payment History</h2>
+            <ul class="mt-4 space-y-3">
+                @forelse ($paymentHistory as $invoice)
+                    <li class="flex items-center justify-between text-sm">
+                        <span class="text-slate-700">{{ $invoice->reference }}</span>
+                        <x-ui.pill :color="$invoice->status->pillColor()">{{ $invoice->status->label() }}</x-ui.pill>
+                    </li>
+                @empty
+                    <li class="text-sm text-slate-400">No invoices yet.</li>
+                @endforelse
+            </ul>
+        </div>
+
+        <div class="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-900">Quotation History</h2>
+            <ul class="mt-4 space-y-3">
+                @forelse ($quotationHistory as $quotation)
+                    <li class="flex items-center justify-between text-sm">
+                        <span class="text-slate-700">{{ $quotation->reference }}</span>
+                        <x-ui.pill :color="$quotation->status->pillColor()">{{ $quotation->status->label() }}</x-ui.pill>
+                    </li>
+                @empty
+                    <li class="text-sm text-slate-400">No quotations yet.</li>
+                @endforelse
+            </ul>
+        </div>
+
+        <div class="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-900">Smart Insights</h2>
+            @if ($averageResponseMinutes !== null)
+                <p class="mt-2 text-xs text-slate-400">Average response time: {{ $averageResponseMinutes < 60 ? $averageResponseMinutes.' min' : round($averageResponseMinutes / 60, 1).' hr' }}</p>
+            @endif
+            <ul class="mt-4 space-y-3">
+                @forelse ($insights as $insight)
+                    <li class="flex gap-2 text-sm text-slate-700">
+                        <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand"></span>
+                        {{ $insight }}
+                    </li>
+                @empty
+                    <li class="text-sm text-slate-400">You're all caught up.</li>
+                @endforelse
+            </ul>
         </div>
     </div>
 </x-layouts.client>
