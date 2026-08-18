@@ -57,6 +57,11 @@ return [
         'github_token' => env('DEPLOY_GITHUB_TOKEN'),
         'repo' => env('DEPLOY_REPO', 'Chibuzor23456/-caniceportal'),
         'branch' => env('DEPLOY_BRANCH', 'production'),
+        // Absolute path to the web server's actual document root, only
+        // needed when it's a fixed sibling directory the app can't be
+        // installed into directly (e.g. Hostinger's public_html) - see
+        // README "Auto-Deploy". Null skips the second sync entirely.
+        'public_path' => env('DEPLOY_PUBLIC_PATH'),
     ],
 
 ];

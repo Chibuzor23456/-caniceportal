@@ -148,7 +148,10 @@ cron-driven queue drain described above (so it can take a minute to actually sta
 downloads the `production` branch as a zip via GitHub's REST API, and syncs it onto
 the live directory (`app/Support/DirectorySync.php` - a real sync: added, changed,
 *and removed* files, never a one-way copy, so deleting a file from git actually
-removes it from the server too), then runs `php artisan migrate --force` and clears
+removes it from the server too). If `DEPLOY_PUBLIC_PATH` is set, the `public/`
+subfolder gets a second, separate sync onto that path instead of living inside the
+app directory - see "Document root on Hostinger" below for why. Then it runs
+`php artisan migrate --force` and clears
 (never `:cache`, which would freeze `env()` reads and break the install wizard's live
 `.env` writes) the view/route/config caches. `.env` and everything under `storage/`
 are never touched by the sync in either direction, no matter what the build artifact
@@ -181,6 +184,34 @@ have the app yet. Do the very first deploy as a manual `git clone` of the
 `production` branch (once it exists - push a commit to `main` first so CI creates
 it) instead of a zip upload, so `.env`/`storage/` are already in place; every push
 after that is zero-click.
+
+**Document root on Hostinger.** Shared hosting fixes the domain's document root at
+`public_html` with no way to point it at a subfolder - but Laravel's document root
+has to be its own `public/` folder, never the project root, or every other file
+(`app/`, `config/`, `database/`, `.env`, `.git`, ...) sits inside the
+publicly-served directory. **Never extract this repo directly into `public_html`.**
+The one-time correct layout:
+
+1. Create a sibling directory next to `public_html` (same level, not inside it) -
+   for example `caniceportal_app`.
+2. Put everything *except* the contents of `public/` there: `app/`, `bootstrap/`,
+   `config/`, `database/`, `resources/`, `routes/`, `storage/`, `vendor/`, `.env`,
+   `artisan`, etc.
+3. Put the *contents* of `public/` (`index.php`, `.htaccess`, `build/`, `favicon.ico`,
+   ...) directly into `public_html/` - not a `public_html/public/` subfolder.
+4. Edit the three `__DIR__.'/../...'` paths in the relocated `public_html/index.php`
+   (maintenance check, `vendor/autoload.php`, `bootstrap/app.php`) to
+   `__DIR__.'/../caniceportal_app/...'` so it can find the app directory it no
+   longer sits next to.
+5. Set `DEPLOY_PUBLIC_PATH` in `caniceportal_app/.env` to the absolute path of
+   `public_html` (find it via File Manager, or a one-off `<?php echo __DIR__;`
+   dropped in `public_html` and deleted right after). Every deploy from then on
+   re-syncs `public/`'s contents there automatically, including Vite's hashed
+   build assets - without this, the live site's CSS/JS would silently go stale on
+   every release.
+
+On any host that *does* let the document root point straight at `public/` (a VPS,
+most non-shared hosts), skip all of this and leave `DEPLOY_PUBLIC_PATH` blank.
 
 ## Tests
 

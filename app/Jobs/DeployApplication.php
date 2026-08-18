@@ -30,10 +30,12 @@ class DeployApplication implements ShouldQueue
     public int $timeout = 300;
 
     /**
-     * Never deleted or overwritten by the sync, checked before every write.
-     * Paths are relative to base_path().
+     * Never deleted or overwritten by the app-root sync, checked before every
+     * write. Paths are relative to base_path(). `public` is excluded here
+     * because - when DEPLOY_PUBLIC_PATH is set - it gets its own separate
+     * sync onto the real document root instead (see runDeploy()).
      */
-    private const EXCLUDED_PREFIXES = ['.env', 'storage', '.git'];
+    private const EXCLUDED_PREFIXES = ['.env', 'storage', '.git', 'public'];
 
     public function handle(): void
     {
@@ -73,7 +75,9 @@ class DeployApplication implements ShouldQueue
             $sourceRoot = $this->findExtractedRoot($extractPath);
 
             $result = (new DirectorySync)->sync($sourceRoot, base_path(), self::EXCLUDED_PREFIXES);
-            $log->info("{$result['synced']} file(s) synced, {$result['deleted']} file(s) deleted.");
+            $log->info("App root: {$result['synced']} file(s) synced, {$result['deleted']} file(s) deleted.");
+
+            $this->syncPublicPath($sourceRoot, $log);
 
             $this->runArtisanSteps($log);
 
@@ -135,6 +139,27 @@ class DeployApplication implements ShouldQueue
         }
 
         return $extractPath.DIRECTORY_SEPARATOR.$entries[0];
+    }
+
+    /**
+     * On hosts where the web server's document root is a fixed sibling
+     * directory the app can't be installed into (e.g. Hostinger's
+     * public_html - see README "Auto-Deploy"), Laravel's own public/ folder
+     * has to be synced there separately on every deploy, since that's where
+     * Vite's hashed build assets and index.php actually need to live. Skips
+     * entirely when DEPLOY_PUBLIC_PATH isn't set, e.g. hosts where the
+     * document root can just point at base_path('public') directly.
+     */
+    private function syncPublicPath(string $sourceRoot, $log): void
+    {
+        $publicPath = config('services.deploy_webhook.public_path');
+
+        if (! $publicPath) {
+            return;
+        }
+
+        $result = (new DirectorySync)->sync($sourceRoot.DIRECTORY_SEPARATOR.'public', $publicPath);
+        $log->info("Public root: {$result['synced']} file(s) synced, {$result['deleted']} file(s) deleted.");
     }
 
     private function runArtisanSteps($log): void
