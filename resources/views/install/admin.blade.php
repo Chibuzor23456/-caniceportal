@@ -7,7 +7,7 @@
         <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm">
             <p class="text-xs font-semibold tracking-wide text-brand uppercase">Step 3 of 3</p>
             <h1 class="mt-1 text-xl font-bold text-slate-900">Admin Account</h1>
-            <p class="mt-1 text-sm text-slate-500">You'll set up two-factor authentication the first time you log in.</p>
+            <p class="mt-1 text-sm text-slate-500">This account manages the whole portal.</p>
 
             <form method="POST" action="{{ route('install.admin.save') }}" class="mt-6 space-y-4">
                 @csrf

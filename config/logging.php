@@ -65,15 +65,6 @@ return [
             'replace_placeholders' => true,
         ],
 
-        // One place to check "did the last push actually go out" -
-        // App\Jobs\DeployApplication writes every step here.
-        'deploy' => [
-            'driver' => 'single',
-            'path' => storage_path('logs/deploy.log'),
-            'level' => 'debug',
-            'replace_placeholders' => true,
-        ],
-
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

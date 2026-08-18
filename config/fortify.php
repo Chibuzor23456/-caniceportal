@@ -164,18 +164,13 @@ return [
     // No public registration: clients are onboarded by the admin (see
     // App\Actions\Clients\CreateClientAction) and there is exactly one admin
     // account, seeded once. Passkeys are a hard dependency of laravel/fortify
-    // in this version but are intentionally never enabled here; Section 7
-    // calls for TOTP-only 2FA on the admin account, nothing more.
+    // in this version but are intentionally never enabled here. Two-factor
+    // authentication was removed - not required.
     'features' => [
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::updateProfileInformation(),
         Features::updatePasswords(),
-        Features::twoFactorAuthentication([
-            'confirm' => true,
-            'confirmPassword' => false,
-            // 'window' => 0,
-        ]),
     ],
 
 ];

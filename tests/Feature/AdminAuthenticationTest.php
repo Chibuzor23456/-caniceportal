@@ -24,7 +24,7 @@ class AdminAuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticatedAs($admin);
-        $response->assertRedirect(route('admin.two-factor.setup'));
+        $response->assertRedirect(route('admin.dashboard'));
     }
 
     public function test_admin_credentials_are_rejected_on_the_client_login_route(): void
@@ -43,21 +43,9 @@ class AdminAuthenticationTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
-    public function test_admin_without_confirmed_two_factor_is_redirected_to_setup_on_every_admin_page(): void
+    public function test_admin_reaches_the_dashboard(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin]);
-
-        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
-
-        $response->assertRedirect(route('admin.two-factor.setup'));
-    }
-
-    public function test_admin_with_confirmed_two_factor_reaches_the_dashboard(): void
-    {
-        $admin = User::factory()->create([
-            'role' => UserRole::Admin,
-            'two_factor_confirmed_at' => now(),
-        ]);
 
         $response = $this->actingAs($admin)->get(route('admin.dashboard'));
 

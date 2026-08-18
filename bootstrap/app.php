@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\EnsureAdminTwoFactorIsSetUp;
 use App\Http\Middleware\EnsureClientPasswordIsCurrent;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Foundation\Application;
@@ -17,15 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
-            'admin.2fa' => EnsureAdminTwoFactorIsSetUp::class,
             'client.password' => EnsureClientPasswordIsCurrent::class,
-        ]);
-
-        // GitHub can't supply a Laravel CSRF token; the deploy webhook is
-        // protected by HMAC signature verification instead (see
-        // DeployWebhookController).
-        $middleware->validateCsrfTokens(except: [
-            'deploy/webhook',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

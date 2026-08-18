@@ -9,15 +9,12 @@ class PostAuthRedirect
 {
     /**
      * Where a just-authenticated (or already-authenticated) user should land,
-     * accounting for the admin's mandatory 2FA setup and a client's forced
-     * first-login password change.
+     * accounting for a client's forced first-login password change.
      */
     public static function path(User $user): string
     {
         if ($user->isAdmin()) {
-            return is_null($user->two_factor_confirmed_at)
-                ? route('admin.two-factor.setup')
-                : route('admin.dashboard');
+            return route('admin.dashboard');
         }
 
         return $user->must_change_password

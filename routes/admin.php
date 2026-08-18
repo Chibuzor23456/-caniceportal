@@ -15,7 +15,6 @@ use App\Http\Controllers\Admin\QuotationController;
 use App\Http\Controllers\Admin\QuotationTemplateController;
 use App\Http\Controllers\Admin\SmtpSettingsController;
 use App\Http\Controllers\Admin\TestimonialController;
-use App\Http\Controllers\Admin\TwoFactorSetupController;
 use App\Http\Controllers\ComingSoonController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
@@ -38,11 +37,9 @@ Route::post('/admin/logout', [AuthenticatedSessionController::class, 'destroy'])
 
 Route::prefix('admin')
     ->name('admin.')
-    ->middleware(['auth', 'role:admin', 'admin.2fa'])
+    ->middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
-
-        Route::get('/security/two-factor-setup', [TwoFactorSetupController::class, 'show'])->name('two-factor.setup');
 
         Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
         Route::get('/clients/create', [ClientController::class, 'create'])->name('clients.create');

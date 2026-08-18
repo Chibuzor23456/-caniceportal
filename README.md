@@ -17,7 +17,7 @@ features).
 
 - Laravel 13, PHP 8.3+, MySQL
 - Livewire 4 + Alpine.js + Tailwind CSS 4 (Poppins, Canice Technologies brand palette)
-- Laravel Fortify (auth, TOTP 2FA for admins)
+- Laravel Fortify (auth)
 - Local disk storage (`storage/app/private`), served through Laravel's built-in
   signed-URL route - no third-party storage account
 - Mail sent through PHPMailer over SMTP, wrapped behind Laravel's `Mail` facade (see
@@ -75,8 +75,7 @@ php artisan serve
 ```
 
 The seeder creates the one admin account and prints its email/temporary password to
-the console **once**, it isn't stored anywhere else, so save it immediately. The admin
-is forced through TOTP two-factor setup on first login (Section 7 of the PRD).
+the console **once**, it isn't stored anywhere else, so save it immediately.
 
 Clients are never created by seeding, they're onboarded through the admin UI
 (Clients -> New Client), which generates their login credentials, emails them,
@@ -133,89 +132,55 @@ shouldn't be "fixed" without re-reading that section first:
   `IMAP_PORT`/`IMAP_USERNAME`/`IMAP_PASSWORD`) are set - create the mailbox on Hostinger
   first, then fill those in.
 
-## Auto-Deploy
+## Deploying an update (manual)
 
-Push to `main` on GitHub and it goes live on its own - no manual re-upload, and no
-`git`/`composer`/`npm` needs to exist or work on Hostinger's PHP process at all.
-Everything builds in CI; the server only ever downloads and syncs a finished,
-ready-to-run artifact.
+There is no auto-deploy pipeline - every update is a manual build-and-upload via
+Hostinger's File Manager, no SSH, no GitHub webhook, no CI. This was a deliberate
+choice (an earlier GitHub Actions + webhook pipeline was tried and removed).
 
-**Pipeline:** push to `main` -> `.github/workflows/deploy.yml` runs `composer install
---no-dev` and `npm run build`, then force-pushes the complete result (including the
-normally-gitignored `vendor/` and `public/build/`) as a single commit to a
-`production` branch -> GitHub fires the webhook again for that push -> `POST
-/deploy/webhook` (`app/Http/Controllers/DeployWebhookController.php`) verifies
-GitHub's HMAC-SHA256 signature and that the push is to `production` specifically
-(pushes to `main` are correctly ignored here - that's unbuilt source, CI hasn't run
-yet), then queues `app/Jobs/DeployApplication.php`. That job runs on the same
-cron-driven queue drain described above (so it can take a minute to actually start),
-downloads the `production` branch as a zip via GitHub's REST API, and syncs it onto
-the live directory (`app/Support/DirectorySync.php` - a real sync: added, changed,
-*and removed* files, never a one-way copy, so deleting a file from git actually
-removes it from the server too). If `DEPLOY_PUBLIC_PATH` is set, the `public/`
-subfolder gets a second, separate sync onto that path instead of living inside the
-app directory - see "Document root on Hostinger" below for why. Then it runs
-`php artisan migrate --force` and clears
-(never `:cache`, which would freeze `env()` reads and break the install wizard's live
-`.env` writes) the view/route/config caches. `.env` and everything under `storage/`
-are never touched by the sync in either direction, no matter what the build artifact
-contains. Every step's output lands in `storage/logs/deploy.log`; admins get an
-email + in-app notification on success or failure either way.
+**Locally, before every deploy:**
 
-**One-time setup, after `/install` has already been completed:**
+```bash
+composer install --no-dev --optimize-autoloader
+npm run build
+```
 
-1. Generate a webhook secret yourself - **don't reuse one from anywhere else**:
-   `openssl rand -hex 32` (any terminal, or Hostinger SSH). Add it to the server's
-   `.env` as `DEPLOY_WEBHOOK_SECRET=...`.
-2. Generate a fine-grained GitHub PAT for the server to download the private repo
-   with: GitHub -> Settings -> Developer settings -> **Personal access tokens** ->
-   **Fine-grained tokens** -> Generate new -> Repository access: only
-   `-caniceportal` -> Permissions: **Contents: Read-only**, nothing else. Add it to
-   the server's `.env` as `DEPLOY_GITHUB_TOKEN=...`. This is a separate credential
-   from whatever GitHub Actions uses to push to `production` (its own auto-issued
-   token, no setup needed for that side).
-3. On GitHub: repo -> Settings -> Webhooks -> Add webhook
-   - Payload URL: `https://portal.okwudilicanice.com/deploy/webhook`
-   - Content type: `application/json`
-   - Secret: the exact same value from step 1
-   - Which events: "Just the push event" (branch filtering happens in the
-     receiver's code, not here - this one webhook covers both the `main` push,
-     which gets ignored, and the `production` push, which triggers the deploy)
-
-**First deploy is still one manual step.** The sync above needs an existing server
-directory to sync *onto* - there's nothing to diff against on a server that doesn't
-have the app yet. Do the very first deploy as a manual `git clone` of the
-`production` branch (once it exists - push a commit to `main` first so CI creates
-it) instead of a zip upload, so `.env`/`storage/` are already in place; every push
-after that is zero-click.
+This produces `vendor/` (normally gitignored) and `public/build/` (Vite's hashed
+assets) - both need to be part of what you upload, even though neither lives in git.
 
 **Document root on Hostinger.** Shared hosting fixes the domain's document root at
 `public_html` with no way to point it at a subfolder - but Laravel's document root
 has to be its own `public/` folder, never the project root, or every other file
-(`app/`, `config/`, `database/`, `.env`, `.git`, ...) sits inside the
-publicly-served directory. **Never extract this repo directly into `public_html`.**
-The one-time correct layout:
+(`app/`, `config/`, `database/`, `.env`, ...) ends up sitting in the publicly-served
+directory. **Never extract this repo directly into `public_html`.** The correct
+layout, kept in place across every deploy:
 
-1. Create a sibling directory next to `public_html` (same level, not inside it) -
-   for example `caniceportal_app`.
-2. Put everything *except* the contents of `public/` there: `app/`, `bootstrap/`,
-   `config/`, `database/`, `resources/`, `routes/`, `storage/`, `vendor/`, `.env`,
-   `artisan`, etc.
-3. Put the *contents* of `public/` (`index.php`, `.htaccess`, `build/`, `favicon.ico`,
-   ...) directly into `public_html/` - not a `public_html/public/` subfolder.
-4. Edit the three `__DIR__.'/../...'` paths in the relocated `public_html/index.php`
-   (maintenance check, `vendor/autoload.php`, `bootstrap/app.php`) to
-   `__DIR__.'/../caniceportal_app/...'` so it can find the app directory it no
-   longer sits next to.
-5. Set `DEPLOY_PUBLIC_PATH` in `caniceportal_app/.env` to the absolute path of
-   `public_html` (find it via File Manager, or a one-off `<?php echo __DIR__;`
-   dropped in `public_html` and deleted right after). Every deploy from then on
-   re-syncs `public/`'s contents there automatically, including Vite's hashed
-   build assets - without this, the live site's CSS/JS would silently go stale on
-   every release.
+- `caniceportal_app/` (a sibling directory next to `public_html`, same level, not
+  inside it) holds everything *except* the contents of `public/`: `app/`,
+  `bootstrap/`, `config/`, `database/`, `resources/`, `routes/`, `storage/`,
+  `vendor/`, `.env`, `artisan`, etc.
+- `public_html/` holds the *contents* of `public/` directly (`index.php`,
+  `.htaccess`, `build/`, `favicon.ico`, ...) - not a `public_html/public/`
+  subfolder.
+- `public_html/index.php`'s three `__DIR__.'/../...'` paths (maintenance check,
+  `vendor/autoload.php`, `bootstrap/app.php`) must point at
+  `__DIR__.'/../caniceportal_app/...'`, since it no longer sits next to those
+  folders the way a stock Laravel `public/index.php` expects.
 
-On any host that *does* let the document root point straight at `public/` (a VPS,
-most non-shared hosts), skip all of this and leave `DEPLOY_PUBLIC_PATH` blank.
+**Every deploy after the first one:**
+
+1. Upload the new/changed files into `caniceportal_app` (everything except
+   `public/`) via File Manager, overwriting what's there. **Never overwrite `.env`
+   or `storage/`** - those hold live config and uploaded files, not build output.
+2. Upload `public/`'s contents into `public_html`, overwriting what's there
+   (this is what actually ships new CSS/JS/index.php changes - easy to forget).
+3. If the update includes new migrations, they need to run somehow. There's no
+   SSH terminal in this workflow, so use hPanel's **Advanced -> Cron Jobs** to add
+   a one-off (or `@reboot`-style single-run) job: `php /path/to/caniceportal_app/artisan migrate --force`.
+   Remove the cron entry again after it's run once - it doesn't need to stay.
+
+Existing background jobs (queued emails, etc.) keep running regardless via the cron
+entry described below - only new *migrations* need this extra manual step.
 
 ## Tests
 
