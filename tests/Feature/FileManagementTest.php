@@ -43,7 +43,7 @@ class FileManagementTest extends TestCase
     public function test_admin_can_upload_a_file_for_a_client(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
         $admin = $this->admin();
         $client = $this->client();
 
@@ -56,13 +56,13 @@ class FileManagementTest extends TestCase
             ->call('upload');
 
         $this->assertSame(1, $client->files()->count());
-        Storage::disk('r2')->assertExists($client->files()->first()->file_path);
+        Storage::disk('local')->assertExists($client->files()->first()->file_path);
     }
 
     public function test_a_client_only_sees_their_own_files_grouped_by_category(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
         $admin = $this->admin();
         $clientA = $this->client('a@example.test');
         $clientB = $this->client('b@example.test');
@@ -82,7 +82,7 @@ class FileManagementTest extends TestCase
     public function test_a_client_cannot_download_another_clients_file(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
         $admin = $this->admin();
         $clientA = $this->client('a@example.test');
         $clientB = $this->client('b@example.test');

@@ -72,7 +72,7 @@ class ProjectReviewFlowTest extends TestCase
     public function test_admin_uploading_a_deliverable_flips_the_phase_to_pending_review_and_notifies_the_client(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
 
         $admin = $this->admin();
         $client = $this->client();

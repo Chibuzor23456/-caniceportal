@@ -8,22 +8,22 @@ class Pdf
 {
     /**
      * DomPDF renders from a string of HTML with no browser-style network
-     * fetching, and R2 (S3) disks don't support local path() resolution, so
-     * images stored there are embedded as base64 data URIs instead.
+     * fetching, so stored images are embedded as base64 data URIs instead of
+     * being referenced by URL.
      */
-    public static function embedImage(?string $r2Path): ?string
+    public static function embedImage(?string $path): ?string
     {
-        if (! $r2Path) {
+        if (! $path) {
             return null;
         }
 
         try {
-            if (! Storage::disk('r2')->exists($r2Path)) {
+            if (! Storage::disk('local')->exists($path)) {
                 return null;
             }
 
-            $contents = Storage::disk('r2')->get($r2Path);
-            $mime = Storage::disk('r2')->mimeType($r2Path) ?? 'image/png';
+            $contents = Storage::disk('local')->get($path);
+            $mime = Storage::disk('local')->mimeType($path) ?? 'image/png';
 
             return "data:{$mime};base64,".base64_encode($contents);
         } catch (\Throwable) {

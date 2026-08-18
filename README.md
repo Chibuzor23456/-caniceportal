@@ -4,20 +4,22 @@ A Laravel client management portal for Canice Technologies, replacing the previo
 WhatsApp/email/spreadsheet workflow. See `canice-technologies-client-portal-PRD.md`
 for the full product spec.
 
-**Current status:** all 5 phases from the PRD's Build Order (Section 4) are built and
-tested - Auth + Client Management, Quotations, Projects, Invoices, and
-Messaging/Notifications/Activity Log/Search/Email Delivery Tracking. Deferred (not in
-the Build Order): Testimonial capture, Contracts, File Management, the full Settings
-module, and Section 8's "Extended Analytics" dashboard widgets. See
-`canice-technologies-client-portal-PRD.md` Sections 4 and 17 for what's deliberately
-out of scope for v1.
+**Current status:** every area named in the PRD is built and tested - the 5 phases
+from the Build Order (Section 4: Auth + Client Management, Quotations, Projects,
+Invoices, Messaging/Notifications/Activity Log/Search/Email Delivery Tracking) plus
+everything deferred out of that order (Contracts, File Management, Testimonial
+capture, the full Settings module including Email Templates, and Section 8's
+Extended Analytics). See `canice-technologies-client-portal-PRD.md` Section 17 for
+what's deliberately still out of scope for v1 (calendar sync, team/support-ticket
+features).
 
 ## Stack
 
 - Laravel 13, PHP 8.3+, MySQL
 - Livewire 4 + Alpine.js + Tailwind CSS 4 (Poppins, Canice Technologies brand palette)
 - Laravel Fortify (auth, TOTP 2FA for admins)
-- Cloudflare R2 (S3-compatible) for file storage
+- Local disk storage (`storage/app/private`), served through Laravel's built-in
+  signed-URL route - no third-party storage account
 - Mail sent through PHPMailer over SMTP, wrapped behind Laravel's `Mail` facade (see
   `app/Mail/Transport/PHPMailerTransport.php`), not a third-party transactional API
 
@@ -63,8 +65,8 @@ Edit `.env`:
 - `MAIL_MAILER=log` is fine for local dev (mail is written to `storage/logs/laravel.log`
   instead of actually sending). Switch to `smtp` with real Hostinger credentials before
   any real email needs to go out; sending itself goes through PHPMailer either way.
-- `R2_*`: only needed once a file-upload feature (Phase 2+) is built, safe to leave
-  blank for now.
+- File uploads work out of the box with no extra setup - everything is stored on
+  the local disk.
 
 ```bash
 php artisan migrate --seed
@@ -119,10 +121,12 @@ shouldn't be "fixed" without re-reading that section first:
   later without touching call sites. Set `MAIL_MAILER=smtp` with real Hostinger SMTP
   credentials in production.
 
-- **All client-facing files live on Cloudflare R2** (the `r2` disk in
-  `config/filesystems.php`), never local disk, set the `R2_*` env vars before any
-  upload feature ships. Links to files on this disk must always be generated as
-  signed/time-limited URLs, never public.
+- **All client-facing files live on the `local` disk** (`storage/app/private`, `serve
+  => true` in `config/filesystems.php`), which registers Laravel's own signed-URL
+  serving route (`storage.local`) automatically. Links to files on this disk must
+  always be generated via `URL::temporarySignedRoute('storage.local', $expiration,
+  ['path' => $path])`, never a plain `Storage::url()` - that route rejects any
+  request without a valid signature.
 
 - **Bounce detection polls a dedicated IMAP mailbox** (`app/Actions/Email/PollBouncesAction.php`,
   scheduled every 5 minutes in `routes/console.php`). It no-ops until `IMAP_HOST` (and

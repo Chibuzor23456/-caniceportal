@@ -7,6 +7,7 @@ use App\Models\CompanySetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\View\View;
 
 class CompanySettingsController extends Controller
@@ -18,7 +19,7 @@ class CompanySettingsController extends Controller
 
         if ($settings->signature_image_path) {
             try {
-                $signatureUrl = Storage::disk('r2')->temporaryUrl($settings->signature_image_path, now()->addMinutes(10));
+                $signatureUrl = URL::temporarySignedRoute('storage.local', now()->addMinutes(10), ['path' => $settings->signature_image_path]);
             } catch (\Throwable) {
                 $signatureUrl = null;
             }
@@ -42,10 +43,10 @@ class CompanySettingsController extends Controller
 
         if ($request->hasFile('signature_image')) {
             if ($settings->signature_image_path) {
-                Storage::disk('r2')->delete($settings->signature_image_path);
+                Storage::disk('local')->delete($settings->signature_image_path);
             }
 
-            $data['signature_image_path'] = $request->file('signature_image')->store('company', 'r2');
+            $data['signature_image_path'] = $request->file('signature_image')->store('company', 'local');
         }
 
         unset($data['signature_image']);

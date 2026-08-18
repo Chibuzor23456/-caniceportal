@@ -24,7 +24,7 @@ class SendMessageAction
         ]);
 
         foreach ($files as $file) {
-            $path = $file->store("messages/{$client->id}", 'r2');
+            $path = $file->store("messages/{$client->id}", 'local');
 
             $message->attachments()->create([
                 'file_path' => $path,

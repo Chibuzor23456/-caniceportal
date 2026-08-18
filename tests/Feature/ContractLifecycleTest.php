@@ -70,7 +70,7 @@ class ContractLifecycleTest extends TestCase
     public function test_uploading_a_contract_file_skips_pdf_generation(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
         $this->actingAs($this->admin());
         $client = $this->client();
 
@@ -78,7 +78,7 @@ class ContractLifecycleTest extends TestCase
         $contract = (new CreateContractAction)->handle($client, 'Uploaded Agreement', file: $file);
 
         $this->assertTrue($contract->isUploaded());
-        Storage::disk('r2')->assertExists($contract->uploaded_file_path);
+        Storage::disk('local')->assertExists($contract->uploaded_file_path);
     }
 
     public function test_sending_a_contract_generates_a_secure_token_and_queues_the_email(): void

@@ -6,6 +6,7 @@ use App\Models\CompanySetting;
 use App\Models\Invoice;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 /**
  * Renders and stores the invoice PDF (Section 14). Same DomPDF/R2 approach
@@ -28,7 +29,7 @@ class InvoicePdfService
 
         $path = $this->path($invoice);
 
-        Storage::disk('r2')->put($path, $pdf->output());
+        Storage::disk('local')->put($path, $pdf->output());
 
         return $path;
     }
@@ -43,11 +44,11 @@ class InvoicePdfService
         $path = $this->path($invoice);
 
         try {
-            if (! Storage::disk('r2')->exists($path)) {
+            if (! Storage::disk('local')->exists($path)) {
                 return null;
             }
 
-            return Storage::disk('r2')->temporaryUrl($path, now()->addMinutes(30));
+            return URL::temporarySignedRoute('storage.local', now()->addMinutes(30), ['path' => $path]);
         } catch (\Throwable) {
             return null;
         }

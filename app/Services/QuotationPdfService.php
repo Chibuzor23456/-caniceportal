@@ -6,6 +6,7 @@ use App\Models\CompanySetting;
 use App\Models\Quotation;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 /**
  * Renders and stores the quotation PDF (Section 10). Pure-PHP DomPDF, no
@@ -30,7 +31,7 @@ class QuotationPdfService
 
         $path = $this->path($quotation);
 
-        Storage::disk('r2')->put($path, $pdf->output());
+        Storage::disk('local')->put($path, $pdf->output());
 
         return $path;
     }
@@ -41,20 +42,20 @@ class QuotationPdfService
     }
 
     /**
-     * Returns null (rather than throwing) whenever R2 is unreachable or the
-     * file isn't there yet, so a storage hiccup degrades a page to "PDF not
-     * available yet" instead of a 500.
+     * Returns null (rather than throwing) whenever storage is unreachable or
+     * the file isn't there yet, so a storage hiccup degrades a page to "PDF
+     * not available yet" instead of a 500.
      */
     public function temporaryUrl(Quotation $quotation): ?string
     {
         $path = $this->path($quotation);
 
         try {
-            if (! Storage::disk('r2')->exists($path)) {
+            if (! Storage::disk('local')->exists($path)) {
                 return null;
             }
 
-            return Storage::disk('r2')->temporaryUrl($path, now()->addMinutes(30));
+            return URL::temporarySignedRoute('storage.local', now()->addMinutes(30), ['path' => $path]);
         } catch (\Throwable) {
             return null;
         }

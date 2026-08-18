@@ -26,7 +26,7 @@ class UploadDeliverableAction
         ]);
 
         foreach ($files as $file) {
-            $path = $file->store("projects/{$phase->project_id}/phases/{$phase->id}", 'r2');
+            $path = $file->store("projects/{$phase->project_id}/phases/{$phase->id}", 'local');
 
             $deliverable->files()->create([
                 'file_path' => $path,

@@ -66,7 +66,7 @@ class ExtendedAnalyticsTest extends TestCase
     public function test_admin_dashboard_shows_extended_analytics_widgets(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
 
         $admin = $this->admin();
         $client = $this->client();
@@ -139,7 +139,7 @@ class ExtendedAnalyticsTest extends TestCase
     public function test_client_dashboard_shows_payment_and_quotation_history_contract_status_and_files(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
 
         $admin = $this->admin();
         $client = $this->client();

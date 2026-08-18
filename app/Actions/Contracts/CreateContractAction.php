@@ -24,7 +24,7 @@ class CreateContractAction
         abort_if(($body === null) === ($file === null), 422, 'A contract needs either a written body or an uploaded file, not both or neither.');
 
         return DB::transaction(function () use ($client, $title, $body, $file, $project) {
-            $uploadedPath = $file?->store("contracts/{$client->id}", 'r2');
+            $uploadedPath = $file?->store("contracts/{$client->id}", 'local');
 
             return Contract::create([
                 'client_id' => $client->id,

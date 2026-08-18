@@ -14,7 +14,7 @@ class UploadPaymentProofAction
 {
     public function handle(Invoice $invoice, UploadedFile $file): Invoice
     {
-        $path = $file->store("invoices/{$invoice->id}/proof", 'r2');
+        $path = $file->store("invoices/{$invoice->id}/proof", 'local');
 
         $invoice->forceFill([
             'payment_proof_path' => $path,

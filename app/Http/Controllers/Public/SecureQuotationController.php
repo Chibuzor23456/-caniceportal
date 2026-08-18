@@ -96,7 +96,7 @@ class SecureQuotationController extends Controller
 
         $path = "quotations/{$quotation->reference}/signature-".now()->timestamp.'.png';
 
-        Storage::disk('r2')->put($path, base64_decode($encoded));
+        Storage::disk('local')->put($path, base64_decode($encoded));
 
         return $path;
     }

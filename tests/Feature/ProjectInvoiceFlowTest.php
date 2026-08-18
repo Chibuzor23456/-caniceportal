@@ -81,7 +81,7 @@ class ProjectInvoiceFlowTest extends TestCase
     public function test_sending_an_invoice_generates_a_pdf_and_notifies_the_client(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
 
         $admin = $this->admin();
         $client = $this->client();
@@ -102,14 +102,14 @@ class ProjectInvoiceFlowTest extends TestCase
         $this->assertSame(InvoiceStatus::Sent, $invoice->status);
         $this->assertSame('Deposit (50%)', $invoice->description);
         $this->assertNotNull($invoice->sent_at);
-        Storage::disk('r2')->assertExists("invoices/{$invoice->reference}.pdf");
+        Storage::disk('local')->assertExists("invoices/{$invoice->reference}.pdf");
         Mail::assertQueued(InvoiceSentMail::class);
     }
 
     public function test_client_uploads_payment_proof_then_admin_marks_it_paid(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
 
         $admin = $this->admin();
         $client = $this->client();
@@ -142,7 +142,7 @@ class ProjectInvoiceFlowTest extends TestCase
     public function test_a_second_invoice_prefills_from_the_next_unbilled_phase_once_the_first_is_paid(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
 
         $admin = $this->admin();
         $client = $this->client();
@@ -162,7 +162,7 @@ class ProjectInvoiceFlowTest extends TestCase
     public function test_overdue_action_flips_a_sent_invoice_past_its_due_date(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
 
         $admin = $this->admin();
         $client = $this->client();
@@ -183,7 +183,7 @@ class ProjectInvoiceFlowTest extends TestCase
     public function test_a_client_cannot_view_another_clients_invoice_or_upload_proof_on_a_non_sent_invoice(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
 
         $admin = $this->admin();
         $clientA = $this->client('a@example.test');
@@ -209,7 +209,7 @@ class ProjectInvoiceFlowTest extends TestCase
     public function test_csv_exports_download_a_well_formed_file(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
 
         $admin = $this->admin();
         $client = $this->client();
@@ -231,7 +231,7 @@ class ProjectInvoiceFlowTest extends TestCase
     public function test_admin_dashboard_reflects_real_invoice_totals(): void
     {
         Mail::fake();
-        Storage::fake('r2');
+        Storage::fake('local');
 
         $admin = $this->admin();
         $client = $this->client();

@@ -13,7 +13,7 @@ class UploadClientFileAction
 {
     public function handle(Client $client, User $uploader, UploadedFile $file, string $category, ?string $description = null): ClientFile
     {
-        $path = $file->store("files/{$client->id}", 'r2');
+        $path = $file->store("files/{$client->id}", 'local');
 
         $clientFile = $client->files()->create([
             'uploaded_by' => $uploader->id,

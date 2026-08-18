@@ -63,7 +63,7 @@ class MessagingNotificationsActivityTest extends TestCase
 
     public function test_admin_sending_a_message_notifies_the_client_and_logs_activity_with_client_scope(): void
     {
-        Storage::fake('r2');
+        Storage::fake('local');
         $admin = $this->admin();
         $client = $this->client();
         Mail::fake();
