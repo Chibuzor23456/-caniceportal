@@ -77,6 +77,13 @@ class InstallWizardTest extends TestCase
 
     public function test_the_mail_and_admin_steps_complete_the_wizard_and_lock_it(): void
     {
+        // ForceInstallerRuntimeConfig forces the session driver to 'file'
+        // for every /install/* request - matching that here before seeding
+        // session data, or the seed lands in the test's default 'array'
+        // store and gets silently dropped the moment the real request
+        // switches drivers underneath it.
+        config(['session.driver' => 'file']);
+
         // The Database step itself is mysql-specific (the real deployment
         // target per PRD Section 3) - simulating it as already-done here
         // lets the rest of the flow exercise fully against the test
